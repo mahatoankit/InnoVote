@@ -1,0 +1,48 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Results Not
+Available - InnoVote{% endblock %} {% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="text-center">
+          <i class="fas fa-lock fa-5x text-muted mb-4"></i>
+          <h1 class="mb-3">Results Not Available</h1>
+          <p class="lead text-muted mb-4">
+            Voting results are currently hidden by the admin. Please check back
+            later when results are made public.
+          </p>
+
+          <div class="card border-0 bg-light">
+            <div class="card-body">
+              <h5 class="card-title">
+                <i class="fas fa-info-circle me-2"></i>Why are results hidden?
+              </h5>
+              <p class="card-text text-start">
+                To ensure fair voting, results are typically hidden during the
+                voting period. This prevents bias and encourages visitors to
+                vote based on their genuine preferences rather than following
+                the crowd.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <a
+              href="{% url 'voting:home' %}"
+              class="btn btn-primary btn-lg me-3"
+            >
+              <i class="fas fa-arrow-left me-2"></i>Back to Projects
+            </a>
+            <button
+              onclick="location.reload()"
+              class="btn btn-outline-primary btn-lg"
+            >
+              <i class="fas fa-sync-alt me-2"></i>Refresh Page
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

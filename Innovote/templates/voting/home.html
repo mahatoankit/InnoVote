@@ -1,0 +1,300 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block title %}InnoVote - College Exhibition Voting{% endblock %} 
+
+{% block content %}
+<!-- Alert Container -->
+<div id="alertContainer" class="container mt-3"></div>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <h1><i class="fas fa-vote-yea me-3"></i>InnoVote</h1>
+    <p class="lead">Fair & Secure Voting for College Exhibition</p>
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="voting-status-container text-center">
+          <span class="voting-status status-badge {% if voting_session.is_active %}active{% else %}inactive{% endif %}">
+            {% if voting_session.is_active %}
+            <i class="fas fa-check-circle me-1"></i>Voting Active 
+            {% else %}
+            <i class="fas fa-times-circle me-1"></i>Voting Inactive 
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Projects Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="row mb-4">
+      <div class="col-12">
+        <h2 class="text-center mb-4">Exhibition Projects</h2>
+        <p class="text-center text-muted">
+          Browse through {{ total_projects }} amazing projects and vote for your
+          favorite!
+        </p>
+      </div>
+    </div>
+
+    {% if projects %}
+    <div class="row">
+      {% for project in projects %}
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card project-card h-100">
+          {% if project.image %}
+          <img
+            src="{{ project.image.url }}"
+            class="card-img-top"
+            alt="{{ project.title }}"
+          />
+          {% else %}
+          <div
+            class="card-img-top bg-light d-flex align-items-center justify-content-center"
+            style="height: 200px"
+          >
+            <i class="fas fa-project-diagram fa-3x text-muted"></i>
+          </div>
+          {% endif %}
+
+          <div class="card-body d-flex flex-column">
+            <div class="mb-2">
+              <span class="category-badge">{{ project.get_category_display }}</span>
+            </div>
+            <h5 class="card-title">{{ project.title }}</h5>
+            <p class="card-text flex-grow-1">
+              {{ project.description|truncatewords:20 }}
+            </p>
+
+            <!-- Team Members -->
+            {% if project.members.all %}
+            <div class="mb-3">
+              <small class="text-muted">
+                <i class="fas fa-users me-1"></i>Team: 
+                {% for member in project.members.all %} 
+                  {{ member.name }}{% if not forloop.last %}, {% endif %} 
+                {% endfor %}
+              </small>
+            </div>
+            {% endif %}
+
+            <!-- Vote Count (only show if results are visible) -->
+            {% if voting_session.show_results %}
+            <div class="mb-3">
+              <small class="text-primary">
+                <i class="fas fa-thumbs-up me-1"></i>{{ project.get_vote_count }}
+                vote{{ project.get_vote_count|pluralize }}
+              </small>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="mt-auto">
+              <div class="d-grid gap-2">
+                <button
+                  class="btn btn-primary vote-btn btn-touch"
+                  data-project-id="{{ project.id }}"
+                  data-project-title="{{ project.title }}"
+                  {% if not voting_session.is_active %}disabled{% endif %}
+                >
+                  <i class="fas fa-vote-yea me-1"></i>
+                  {% if voting_session.is_active %}Vote Now{% else %}Voting Closed{% endif %}
+                </button>
+                <button
+                  class="btn btn-outline-secondary feedback-btn btn-touch"
+                  data-project-id="{{ project.id }}"
+                  data-project-title="{{ project.title }}"
+                >
+                  <i class="fas fa-comment me-1"></i>Leave Feedback
+                </button>
+                <a
+                  href="{% url 'voting:project_detail' project.id %}"
+                  class="btn btn-outline-primary btn-touch"
+                >
+                  <i class="fas fa-eye me-1"></i>View Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+      <div class="col-12">
+        <div class="text-center py-5">
+          <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+          <h3 class="text-muted">No Projects Yet</h3>
+          <p class="text-muted">
+            Projects will be displayed here once they are added by the admin.
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Voting Instructions -->
+<section class="voting-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="voting-card text-center">
+          <h3 class="mb-4">
+            <i class="fas fa-info-circle me-2"></i>How to Vote
+          </h3>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <div class="text-center">
+                <i class="fas fa-ticket-alt fa-3x text-primary mb-2"></i>
+                <h5>Get Your Code</h5>
+                <p class="text-muted">
+                  Use the 5-character voting code from your entry card
+                </p>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="text-center">
+                <i class="fas fa-mouse-pointer fa-3x text-primary mb-2"></i>
+                <h5>Select Project</h5>
+                <p class="text-muted">
+                  Browse projects and click "Vote Now" on your favorite
+                </p>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="text-center">
+                <i class="fas fa-check-circle fa-3x text-primary mb-2"></i>
+                <h5>Vote Submitted</h5>
+                <p class="text-muted">
+                  Your vote is recorded securely and cannot be changed
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Vote Modal -->
+<div class="modal fade" id="voteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Vote for Project</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form id="voteForm">
+        <div class="modal-body">
+          <input type="hidden" id="projectId" name="projectId" />
+          <div class="mb-3">
+            <label for="votingCode" class="form-label"
+              >Enter your 5-character voting code:</label
+            >
+            <input
+              type="text"
+              class="form-control voting-id-input"
+              id="votingCode"
+              name="votingCode"
+              maxlength="5"
+              placeholder="XXXXX"
+              required
+            />
+            <div class="form-text">
+              Enter the code from your entry card (case insensitive)
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-vote-yea me-1"></i>Submit Vote
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Leave Feedback</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form id="feedbackForm">
+        <div class="modal-body">
+          <input type="hidden" id="feedbackProjectId" name="projectId" />
+          <div class="mb-3">
+            <label for="feedbackText" class="form-label"
+              >Your feedback or recommendation:</label
+            >
+            <textarea
+              class="form-control feedback-textarea"
+              id="feedbackText"
+              name="feedbackText"
+              rows="4"
+              placeholder="Share your thoughts about this project..."
+              required
+            ></textarea>
+            <div class="form-text">
+              Your feedback will be shared anonymously with the project team.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-paper-plane me-1"></i>Submit Feedback
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Auto-focus on voting code input when modal opens
+  document
+    .getElementById("voteModal")
+    .addEventListener("shown.bs.modal", function () {
+      document.getElementById("votingCode").focus();
+    });
+
+  // Format voting code input
+  document.getElementById("votingCode").addEventListener("input", function (e) {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  });
+</script>
+{% endblock %}
