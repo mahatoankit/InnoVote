@@ -105,8 +105,8 @@ class VotingID(models.Model):
 
     @classmethod
     def generate_unique_code(cls):
-        """Generate a unique 5-character code"""
-        chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
+        """Generate a unique 5-character code using only uppercase letters A-Z"""
+        chars = string.ascii_uppercase  # Only A-Z
         while True:
             code = "".join(random.choices(chars, k=5))
             if not cls.objects.filter(code=code).exists():
@@ -167,14 +167,16 @@ class AdminLog(models.Model):
         ("show_results", "Showed Results"),
         ("hide_results", "Hid Results"),
         ("generate_ids", "Generated Voting IDs"),
-        ("project_created", "Created Project"),
-        ("project_updated", "Updated Project"),
-        ("project_deleted", "Deleted Project"),
+        ("create_project", "Created Project"),
+        ("edit_project", "Updated Project"),
+        ("delete_project", "Deleted Project"),
         ("login", "Admin Login"),
         ("logout", "Admin Logout"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="admin_logs")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="admin_logs", null=True, blank=True
+    )
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)
     description = models.TextField(blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -186,4 +188,5 @@ class AdminLog(models.Model):
         verbose_name_plural = "Admin Logs"
 
     def __str__(self):
-        return f"{self.user.username} - {self.get_action_display()} at {self.timestamp}"
+        username = self.user.username if self.user else "System"
+        return f"{username} - {self.action} at {self.timestamp}"

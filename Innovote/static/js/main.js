@@ -1,74 +1,131 @@
 // Main JavaScript for InnoVote
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the application
-    initializeApp();
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Initialize popovers
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl);
+    });
+
+    // Touch-friendly enhancements
+    if ('ontouchstart' in window) {
+        document.body.classList.add('touch-device');
+        
+        // Add touch feedback
+        const touchElements = document.querySelectorAll('.btn, .card, .list-group-item');
+        touchElements.forEach(element => {
+            element.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.98)';
+            });
+            
+            element.addEventListener('touchend', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    }
+
+    // Form validation enhancements
+    const forms = document.querySelectorAll('.needs-validation');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+
+    // Auto-resize textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    });
 });
 
-function initializeApp() {
-    // Check voting status periodically
-    checkVotingStatus();
-    setInterval(checkVotingStatus, 30000); // Check every 30 seconds
-    
-    // Initialize vote functionality
-    initializeVoting();
-    
-    // Initialize feedback functionality
-    initializeFeedback();
-    
-    // Initialize animations
-    initializeAnimations();
-}
+// Utility functions
+function showNotification(message, type = 'info', duration = 5000) {
+    const toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) return;
 
-function checkVotingStatus() {
-    fetch('/status/')
-        .then(response => response.json())
-        .then(data => {
-            updateVotingStatus(data.is_active, data.show_results);
-        })
-        .catch(error => {
-            console.error('Error checking voting status:', error);
-        });
-}
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
 
-function updateVotingStatus(isActive, showResults) {
-    const statusElements = document.querySelectorAll('.voting-status');
-    statusElements.forEach(element => {
-        element.className = `voting-status status-badge ${isActive ? 'active' : 'inactive'}`;
-        element.textContent = isActive ? 'Voting Active' : 'Voting Inactive';
+    const iconMap = {
+        success: 'check-circle',
+        error: 'exclamation-circle',
+        warning: 'exclamation-triangle',
+        info: 'info-circle'
+    };
+
+    toast.innerHTML = `
+        <div class="toast-header">
+            <i class="fas fa-${iconMap[type]} text-${type} me-2"></i>
+            <strong class="me-auto">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    const bootstrapToast = new bootstrap.Toast(toast, {
+        autohide: true,
+        delay: duration
     });
-    
-    // Update voting buttons
-    const voteButtons = document.querySelectorAll('.vote-btn');
-    voteButtons.forEach(button => {
-        button.disabled = !isActive;
-        if (!isActive) {
-            button.textContent = 'Voting Closed';
-            button.classList.add('btn-secondary');
-            button.classList.remove('btn-primary');
-        } else {
-            button.textContent = 'Vote Now';
-            button.classList.add('btn-primary');
-            button.classList.remove('btn-secondary');
+
+    bootstrapToast.show();
+
+    toast.addEventListener('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
         }
-    });
-}
-
-function initializeVoting() {
-    // Handle vote button clicks
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('vote-btn')) {
-            const projectId = e.target.dataset.projectId;
-            const projectTitle = e.target.dataset.projectTitle;
-            showVotingModal(projectId, projectTitle);
-        }
-    });
-    
-    // Handle voting form submission
-    const voteForm = document.getElementById('voteForm');
-    if (voteForm) {
-        voteForm.addEventListener('submit', handleVoteSubmission);
     }
+    return cookieValue;
 }
+
+// Voting specific functions
+function validateVotingCode(code) {
+    const regex = /^[A-Za-z0-9]{5}$/;
+    return regex.test(code);
+}
+
+function formatVotingCode(code) {
+    return code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+// Export functions for use in other scripts
+window.InnoVote = {
+    showNotification,
+    getCookie,
+    validateVotingCode,
+    formatVotingCode
+};
 
 function showVotingModal(projectId, projectTitle) {
     const modal = document.getElementById('voteModal');

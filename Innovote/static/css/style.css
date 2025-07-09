@@ -1,11 +1,13 @@
 /* Custom CSS for InnoVote */
 :root {
     --primary-color: #C12A37;
+    --primary-dark: #a02229;
     --secondary-color: #f8f9fa;
     --accent-color: #28a745;
     --warning-color: #ffc107;
     --danger-color: #dc3545;
     --dark-color: #343a40;
+    --light-gray: #e9ecef;
 }
 
 /* Override Bootstrap primary color */
@@ -15,8 +17,8 @@
 }
 
 .btn-primary:hover, .btn-primary:focus {
-    background-color: #a02229 !important;
-    border-color: #a02229 !important;
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
 }
 
 .text-primary {
@@ -32,7 +34,7 @@ body {
 
 /* Hero section */
 .hero-section {
-    background: linear-gradient(135deg, var(--primary-color), #a02229);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
     color: white;
     padding: 4rem 0;
     text-align: center;
@@ -47,6 +49,231 @@ body {
 .hero-section p {
     font-size: 1.2rem;
     margin-bottom: 2rem;
+}
+
+/* Touch-friendly buttons */
+.btn-touch {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    touch-action: manipulation;
+}
+
+.btn-touch:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-touch:active {
+    transform: translateY(0);
+}
+
+/* Card styling */
+.card-modern {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-modern:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Gradient backgrounds */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* Navigation */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-active {
+    background-color: var(--accent-color);
+    animation: pulse 2s infinite;
+}
+
+.status-inactive {
+    background-color: var(--danger-color);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Loading spinner */
+.spinner {
+    border: 3px solid var(--light-gray);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Toast notifications */
+.toast {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.toast-success {
+    border-left: 4px solid var(--accent-color);
+}
+
+.toast-error {
+    border-left: 4px solid var(--danger-color);
+}
+
+.toast-warning {
+    border-left: 4px solid var(--warning-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .btn-touch {
+        padding: 15px 20px;
+        font-size: 1.2rem;
+    }
+    
+    .card-modern {
+        margin-bottom: 1rem;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section p {
+        font-size: 1.1rem;
+    }
+}
+
+/* Project cards */
+.project-card {
+    transition: transform 0.3s ease;
+}
+
+.project-card:hover {
+    transform: scale(1.02);
+}
+
+/* Form enhancements */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(193, 42, 55, 0.25);
+}
+
+/* Badge styling */
+.badge {
+    font-size: 0.85em;
+    padding: 0.5em 0.75em;
+}
+
+/* Table enhancements */
+.table-hover tbody tr:hover {
+    background-color: rgba(193, 42, 55, 0.05);
+}
+
+/* Voting modal enhancements */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--light-gray);
+}
+
+/* Progress bars */
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.8s ease;
+}
+
+/* Animations */
+.fadeIn {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slideInLeft {
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Accessibility improvements */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .card-modern {
+        border: 2px solid var(--dark-color);
+    }
+    
+    .btn-outline-primary {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* Project cards */

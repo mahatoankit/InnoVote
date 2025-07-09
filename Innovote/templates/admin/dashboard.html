@@ -1,0 +1,711 @@
+{% extends 'base.html' %} {% block title %}Admin Dashboard - InnoVote 
+{% endblock %} {% block content %}
+<!-- Admin Header -->
+<section class="py-4 bg-gradient-primary text-white">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-6 fw-bold mb-2">
+          <i class="fas fa-cogs me-3"></i>
+          Admin Dashboard
+        </h1>
+        <p class="lead mb-0">
+          Manage voting sessions and monitor real-time analytics
+        </p>
+      </div>
+      <div class="col-lg-4 text-end">
+        <div class="d-flex gap-2 justify-content-end">
+          <a href="{% url 'voting:home' %}" class="btn btn-outline-light">
+            <i class="fas fa-eye me-2"></i>
+            View Public Site
+          </a>
+          <a href="{% url 'voting:admin_logout' %}" class="btn btn-light">
+            <i class="fas fa-sign-out-alt me-2"></i>
+            Logout ({{ user.username }})
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Stats -->
+<section class="py-4 bg-light">
+  <div class="container">
+    <div class="row g-3">
+      <div class="col-lg-3 col-md-6">
+        <div class="card card-modern bg-primary text-white">
+          <div class="card-body text-center">
+            <i class="fas fa-project-diagram fs-1 mb-3"></i>
+            <h2 class="mb-1">{{ total_projects }}</h2>
+            <p class="mb-0">Total Projects</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="card card-modern bg-success text-white">
+          <div class="card-body text-center">
+            <i class="fas fa-vote-yea fs-1 mb-3"></i>
+            <h2 class="mb-1" id="live-votes">{{ total_votes }}</h2>
+            <p class="mb-0">Total Votes</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="card card-modern bg-warning text-white">
+          <div class="card-body text-center">
+            <i class="fas fa-users fs-1 mb-3"></i>
+            <h2 class="mb-1" id="live-participants">
+              {{ total_participants }}
+            </h2>
+            <p class="mb-0">Participants</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="card card-modern bg-info text-white">
+          <div class="card-body text-center">
+            <i class="fas fa-comments fs-1 mb-3"></i>
+            <h2 class="mb-1" id="live-feedback">{{ total_feedback }}</h2>
+            <p class="mb-0">Feedback</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Main Dashboard -->
+<section class="py-5">
+  <div class="container">
+    <div class="row">
+      <!-- Left Column -->
+      <div class="col-lg-8">
+        <!-- Voting Controls -->
+        <div class="card card-modern mb-4">
+          <div class="card-header">
+            <h3 class="mb-0 text-primary">
+              <i class="fas fa-sliders-h me-2"></i>
+              Voting Controls
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="p-3 bg-light rounded">
+                  <h6 class="text-primary mb-3">
+                    <i class="fas fa-vote-yea me-2"></i>
+                    Voting Status
+                  </h6>
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <div>
+                      <span
+                        class="status-indicator {% if voting_session.is_active %}status-active{% else %}status-inactive{% endif %}"
+                      ></span>
+                      <span class="fw-bold">
+                        {% if voting_session.is_active %} Voting Active {% else
+                        %} Voting Stopped {% endif %}
+                      </span>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="votingToggle"
+                        {%
+                        if
+                        voting_session.is_active
+                        %}checked{%
+                        endif
+                        %}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-primary btn-touch w-100"
+                    onclick="toggleVoting()"
+                  >
+                    <i class="fas fa-power-off me-2"></i>
+                    {% if voting_session.is_active %}Stop Voting{% else %}Start
+                    Voting{% endif %}
+                  </button>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 bg-light rounded">
+                  <h6 class="text-primary mb-3">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Results Visibility
+                  </h6>
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <div>
+                      <span
+                        class="status-indicator {% if voting_session.show_results %}status-active{% else %}status-inactive{% endif %}"
+                      ></span>
+                      <span class="fw-bold">
+                        {% if voting_session.show_results %} Results Visible {%
+                        else %} Results Hidden {% endif %}
+                      </span>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="resultsToggle"
+                        {%
+                        if
+                        voting_session.show_results
+                        %}checked{%
+                        endif
+                        %}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-success btn-touch w-100"
+                    onclick="toggleResults()"
+                  >
+                    <i class="fas fa-eye me-2"></i>
+                    {% if voting_session.show_results %}Hide Results{% else
+                    %}Show Results{% endif %}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project Management -->
+        <div class="card card-modern mb-4">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h3 class="mb-0 text-primary">
+                <i class="fas fa-project-diagram me-2"></i>
+                Project Management
+              </h3>
+              <a
+                href="{% url 'voting:create_project' %}"
+                class="btn btn-primary"
+              >
+                <i class="fas fa-plus me-2"></i>
+                Add Project
+              </a>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Project</th>
+                    <th>Category</th>
+                    <th>Team Members</th>
+                    <th>Votes</th>
+                    <th>Feedback</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="projectsTable">
+                  {% for project in projects %}
+                  <tr>
+                    <td>
+                      <strong>{{ project.title }}</strong>
+                      <br />
+                      <small class="text-muted"
+                        >{{ project.description|truncatechars:50 }}</small
+                      >
+                    </td>
+                    <td>
+                      <span class="badge bg-primary"
+                        >{{ project.get_category_display }}</span
+                      >
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark"
+                        >{{ project.members.count }}</span
+                      >
+                    </td>
+                    <td>
+                      <span class="badge bg-success"
+                        >{{ project.get_vote_count }}</span
+                      >
+                    </td>
+                    <td>
+                      <span class="badge bg-info"
+                        >{{ project.get_feedback_count }}</span
+                      >
+                    </td>
+                    <td>
+                      <div class="btn-group" role="group">
+                        <a
+                          href="{% url 'voting:project_detail' project.id %}"
+                          class="btn btn-sm btn-outline-primary"
+                          title="View Project"
+                        >
+                          <i class="fas fa-eye"></i>
+                        </a>
+                        <a
+                          href="{% url 'voting:edit_project' project.id %}"
+                          class="btn btn-sm btn-outline-secondary"
+                          title="Edit Project"
+                        >
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        <a
+                          href="{% url 'voting:delete_project' project.id %}"
+                          class="btn btn-sm btn-outline-danger"
+                          title="Delete Project"
+                        >
+                          <i class="fas fa-trash"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Analytics -->
+        <div class="card card-modern">
+          <div class="card-header">
+            <h3 class="mb-0 text-primary">
+              <i class="fas fa-chart-line me-2"></i>
+              Real-time Analytics
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-8">
+                <canvas id="votingChart" width="400" height="200"></canvas>
+              </div>
+              <div class="col-md-4">
+                <h6 class="text-primary">Top Projects</h6>
+                <div id="topProjects">
+                  <!-- Top projects will be loaded here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="col-lg-4">
+        <!-- Voting ID Management -->
+        <div class="card card-modern mb-4">
+          <div class="card-header">
+            <h5 class="mb-0 text-primary">
+              <i class="fas fa-id-card me-2"></i>
+              Voting ID Management
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row text-center mb-3">
+              <div class="col-6">
+                <div class="border-end">
+                  <h4 class="text-primary" id="total-ids">Loading...</h4>
+                  <small class="text-muted">Total IDs</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <h4 class="text-success" id="used-ids">Loading...</h4>
+                <small class="text-muted">Used IDs</small>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="idCount" class="form-label">Generate New IDs:</label>
+              <input
+                type="number"
+                class="form-control"
+                id="idCount"
+                min="1"
+                max="1000"
+                value="50"
+              />
+              <div class="form-text">
+                <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                <strong>Warning:</strong> This will clear ALL existing voting
+                IDs and generate new ones using only uppercase letters (A-Z).
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button class="btn btn-warning btn-touch" onclick="generateIDs()">
+                <i class="fas fa-refresh me-2"></i>
+                Clear & Generate New IDs
+              </button>
+              <a href="/admin/voting/votingid/" class="btn btn-outline-primary">
+                <i class="fas fa-list me-2"></i>
+                View All IDs
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card card-modern mb-4">
+          <div class="card-header">
+            <h5 class="mb-0 text-primary">
+              <i class="fas fa-history me-2"></i>
+              Recent Activity
+            </h5>
+          </div>
+          <div class="card-body">
+            <div
+              id="recentActivity"
+              style="max-height: 300px; overflow-y: auto"
+            >
+              <!-- Recent activity will be loaded here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Logs -->
+        <div class="card card-modern">
+          <div class="card-header">
+            <h5 class="mb-0 text-primary">
+              <i class="fas fa-clipboard-list me-2"></i>
+              Admin Logs
+            </h5>
+          </div>
+          <div class="card-body">
+            <div style="max-height: 300px; overflow-y: auto">
+              {% for log in recent_logs %}
+              <div class="d-flex align-items-center mb-2">
+                <div class="me-2">
+                  <i
+                    class="fas fa-circle text-primary"
+                    style="font-size: 0.5rem"
+                  ></i>
+                </div>
+                <div class="flex-grow-1">
+                  <small>
+                    <strong>{{ log.get_action_display }}</strong>
+                    <br />
+                    <span class="text-muted"
+                      >{{ log.timestamp|date:"M d, H:i" }}</span
+                    >
+                  </small>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="text-center mt-3">
+              <a
+                href="/admin/voting/adminlog/"
+                class="btn btn-sm btn-outline-primary"
+              >
+                View All Logs
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Live update indicator -->
+<div class="position-fixed bottom-0 start-0 m-3">
+  <div
+    class="alert alert-success d-flex align-items-center live-indicator"
+    role="alert"
+  >
+    <div class="spinner-border spinner-border-sm me-2" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <small>Live updates active</small>
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
+<style>
+  .live-indicator {
+    animation: slideIn 0.5s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+
+  .status-active {
+    background-color: #28a745;
+    animation: pulse 2s infinite;
+  }
+
+  .status-inactive {
+    background-color: #dc3545;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: rgba(193, 42, 55, 0.05);
+  }
+</style>
+{% endblock %} {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  let votingChart;
+
+  // Toggle voting status
+  function toggleVoting() {
+      const isActive = document.getElementById('votingToggle').checked;
+
+      fetch('{% url "voting:toggle_voting" %}', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+              is_active: isActive
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              showToast(`Voting ${isActive ? 'started' : 'stopped'} successfully!`, 'success');
+              updateStatusDisplay();
+          } else {
+              showToast('Error updating voting status.', 'error');
+          }
+      });
+  }
+
+  // Toggle results visibility
+  function toggleResults() {
+      const showResults = document.getElementById('resultsToggle').checked;
+
+      fetch('{% url "voting:toggle_results" %}', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+              show_results: showResults
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              showToast(`Results ${showResults ? 'shown' : 'hidden'} successfully!`, 'success');
+              updateStatusDisplay();
+          } else {
+              showToast('Error updating results visibility.', 'error');
+          }
+      });
+  }
+
+  // Generate voting IDs
+  function generateIDs() {
+      const count = document.getElementById('idCount').value;
+
+      if (!count || count < 1 || count > 1000) {
+          showToast('Please enter a number between 1 and 1000.', 'warning');
+          return;
+      }
+
+      // Show confirmation dialog
+      if (!confirm(`This will DELETE ALL existing voting IDs and generate ${count} new ones using only uppercase letters (A-Z). Are you sure you want to continue?`)) {
+          return;
+      }
+
+      fetch('{% url "voting:generate_voting_ids" %}', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: `count=${count}`
+      })
+      .then(response => {
+          if (response.ok) {
+              showToast(`Successfully cleared old IDs and generated ${count} new voting IDs!`, 'success');
+              updateVotingIDStats();
+          } else {
+              showToast('Error generating voting IDs.', 'error');
+          }
+      });
+  }
+
+  // Update status display
+  function updateStatusDisplay() {
+      // This would normally fetch the current status from the server
+      // For now, we'll just update based on toggle states
+      location.reload();
+  }
+
+  // Update voting ID statistics
+  function updateVotingIDStats() {
+      fetch('{% url "voting:analytics_api" %}')
+          .then(response => response.json())
+          .then(data => {
+              document.getElementById('total-ids').textContent = data.total_voting_ids;
+              document.getElementById('used-ids').textContent = data.used_voting_ids;
+          });
+  }
+
+  // Update live statistics
+  function updateLiveStats() {
+      fetch('{% url "voting:analytics_api" %}')
+          .then(response => response.json())
+          .then(data => {
+              document.getElementById('live-votes').textContent = data.total_votes;
+              document.getElementById('live-participants').textContent = data.used_voting_ids;
+              document.getElementById('live-feedback').textContent = data.total_feedbacks;
+
+              updateVotingIDStats();
+              updateRecentActivity(data.recent_votes);
+              updateTopProjects(data.projects);
+              updateChart(data.projects);
+          });
+  }
+
+  // Update recent activity
+  function updateRecentActivity(recentVotes) {
+      const container = document.getElementById('recentActivity');
+
+      if (recentVotes.length === 0) {
+          container.innerHTML = '<p class="text-muted text-center">No recent activity</p>';
+          return;
+      }
+
+      let html = '';
+      recentVotes.slice(0, 10).forEach(vote => {
+          html += `
+              <div class="d-flex align-items-center mb-2">
+                  <div class="me-2">
+                      <i class="fas fa-vote-yea text-success"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                      <small>
+                          <strong>${vote.project}</strong>
+                          <br>
+                          <span class="text-muted">${vote.timestamp}</span>
+                      </small>
+                  </div>
+              </div>
+          `;
+      });
+
+      container.innerHTML = html;
+  }
+
+  // Update top projects
+  function updateTopProjects(projects) {
+      const container = document.getElementById('topProjects');
+      const sortedProjects = projects.sort((a, b) => b.votes - a.votes).slice(0, 5);
+
+      let html = '';
+      sortedProjects.forEach((project, index) => {
+          html += `
+              <div class="d-flex align-items-center mb-2">
+                  <div class="me-2">
+                      <span class="badge bg-primary">${index + 1}</span>
+                  </div>
+                  <div class="flex-grow-1">
+                      <small>
+                          <strong>${project.name}</strong>
+                          <br>
+                          <span class="text-muted">${project.votes} votes</span>
+                      </small>
+                  </div>
+              </div>
+          `;
+      });
+
+      container.innerHTML = html;
+  }
+
+  // Update chart
+  function updateChart(projects) {
+      const ctx = document.getElementById('votingChart').getContext('2d');
+
+      if (votingChart) {
+          votingChart.destroy();
+      }
+
+      const labels = projects.map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name);
+      const data = projects.map(p => p.votes);
+
+      votingChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: labels,
+              datasets: [{
+                  label: 'Votes',
+                  data: data,
+                  backgroundColor: 'rgba(193, 42, 55, 0.6)',
+                  borderColor: 'rgba(193, 42, 55, 1)',
+                  borderWidth: 1
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      ticks: {
+                          stepSize: 1
+                      }
+                  }
+              }
+          }
+      });
+  }
+
+  // Initialize dashboard
+  document.addEventListener('DOMContentLoaded', function() {
+      updateLiveStats();
+
+      // Update every 15 seconds
+      setInterval(updateLiveStats, 15000);
+
+      // Set up toggle listeners
+      document.getElementById('votingToggle').addEventListener('change', function() {
+          if (this.checked !== {{ voting_session.is_active|yesno:"true,false" }}) {
+              toggleVoting();
+          }
+      });
+
+      document.getElementById('resultsToggle').addEventListener('change', function() {
+          if (this.checked !== {{ voting_session.show_results|yesno:"true,false" }}) {
+              toggleResults();
+          }
+      });
+  });
+</script>
+{% endblock %}

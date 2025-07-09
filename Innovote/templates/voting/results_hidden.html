@@ -1,48 +1,414 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Results Not
-Available - InnoVote{% endblock %} {% block content %}
-<section class="py-5">
+{% extends 'base.html' %} {% block title %}Results Not Available - InnoVote{%
+endblock %} {% block content %}
+<section class="py-5 d-flex align-items-center min-vh-100">
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-lg-6">
-        <div class="text-center">
-          <i class="fas fa-lock fa-5x text-muted mb-4"></i>
-          <h1 class="mb-3">Results Not Available</h1>
-          <p class="lead text-muted mb-4">
-            Voting results are currently hidden by the admin. Please check back
-            later when results are made public.
-          </p>
+      <div class="col-lg-8 col-md-10">
+        <div class="card card-modern border-0 shadow-lg">
+          <div class="card-body text-center py-5">
+            <!-- Icon -->
+            <div class="mb-4">
+              <i
+                class="fas fa-eye-slash text-muted"
+                style="font-size: 4rem"
+              ></i>
+            </div>
 
-          <div class="card border-0 bg-light">
-            <div class="card-body">
-              <h5 class="card-title">
-                <i class="fas fa-info-circle me-2"></i>Why are results hidden?
-              </h5>
-              <p class="card-text text-start">
-                To ensure fair voting, results are typically hidden during the
-                voting period. This prevents bias and encourages visitors to
-                vote based on their genuine preferences rather than following
-                the crowd.
+            <!-- Title -->
+            <h1 class="display-5 fw-bold text-primary mb-4">
+              Results Not Available
+            </h1>
+
+            <!-- Message -->
+            <div class="mb-4">
+              <p class="lead text-muted mb-3">
+                The voting results are currently hidden and will be revealed
+                once the voting period ends.
+              </p>
+              <p class="text-muted">
+                Please check back later or wait for the administrator to make
+                the results public.
               </p>
             </div>
-          </div>
 
-          <div class="mt-4">
-            <a
-              href="{% url 'voting:home' %}"
-              class="btn btn-primary btn-lg me-3"
-            >
-              <i class="fas fa-arrow-left me-2"></i>Back to Projects
-            </a>
-            <button
-              onclick="location.reload()"
-              class="btn btn-outline-primary btn-lg"
-            >
-              <i class="fas fa-sync-alt me-2"></i>Refresh Page
-            </button>
+            <!-- Status Card -->
+            <div class="card bg-light border-0 mb-4">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-md-6">
+                    <h6 class="text-primary mb-2">
+                      <i class="fas fa-vote-yea me-2"></i>
+                      Voting Status
+                    </h6>
+                    <div class="voting-status">
+                      <span class="status-indicator status-inactive"></span>
+                      <span class="status-text">Checking status...</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <h6 class="text-primary mb-2">
+                      <i class="fas fa-chart-bar me-2"></i>
+                      Results Status
+                    </h6>
+                    <div class="d-flex align-items-center">
+                      <span class="status-indicator status-inactive"></span>
+                      <span class="text-muted">Hidden by Administrator</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Statistics -->
+            <div class="row mb-4">
+              <div class="col-md-4">
+                <div class="p-3 bg-primary text-white rounded">
+                  <i class="fas fa-project-diagram fs-2 mb-2"></i>
+                  <h4 class="mb-0" id="total-projects">Loading...</h4>
+                  <small>Total Projects</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3 bg-success text-white rounded">
+                  <i class="fas fa-vote-yea fs-2 mb-2"></i>
+                  <h4 class="mb-0" id="total-votes">Loading...</h4>
+                  <small>Votes Cast</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3 bg-info text-white rounded">
+                  <i class="fas fa-users fs-2 mb-2"></i>
+                  <h4 class="mb-0" id="participants">Loading...</h4>
+                  <small>Participants</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+              <a
+                href="{% url 'voting:home' %}"
+                class="btn btn-primary btn-touch"
+              >
+                <i class="fas fa-home me-2"></i>
+                Back to Projects
+              </a>
+              <button
+                class="btn btn-outline-primary btn-touch"
+                onclick="checkResults()"
+              >
+                <i class="fas fa-sync-alt me-2"></i>
+                Check Again
+              </button>
+              <button
+                class="btn btn-outline-secondary btn-touch"
+                onclick="notifyMe()"
+              >
+                <i class="fas fa-bell me-2"></i>
+                Notify When Available
+              </button>
+            </div>
+
+            <!-- Footer Info -->
+            <div class="mt-5 pt-4 border-top">
+              <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Results will be automatically available once the administrator
+                enables them.
+                <br />
+                <i class="fas fa-clock me-1"></i>
+                This page updates every 30 seconds.
+              </small>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- Notification Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-bell me-2"></i>
+          Result Notifications
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Note:</strong> This is a demo feature. In a real
+          implementation, you would set up email or SMS notifications.
+        </div>
+
+        <div class="mb-3">
+          <label for="notificationEmail" class="form-label"
+            >Email Address:</label
+          >
+          <input
+            type="email"
+            class="form-control"
+            id="notificationEmail"
+            placeholder="your@email.com"
+          />
+        </div>
+
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="browserNotifications"
+          />
+          <label class="form-check-label" for="browserNotifications">
+            Enable browser notifications
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="setupNotifications()"
+        >
+          <i class="fas fa-bell me-2"></i>
+          Setup Notifications
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Auto-refresh indicator -->
+<div class="position-fixed bottom-0 end-0 m-3">
+  <div class="alert alert-light border d-flex align-items-center" role="alert">
+    <div
+      class="spinner-border spinner-border-sm text-primary me-2"
+      role="status"
+    >
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <small>Auto-checking for results...</small>
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
+<style>
+  .min-vh-100 {
+    min-height: 100vh;
+  }
+
+  .status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+
+  .status-active {
+    background-color: #28a745;
+    animation: pulse 2s infinite;
+  }
+
+  .status-inactive {
+    background-color: #dc3545;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .card-modern {
+    border-radius: 20px;
+    transition: transform 0.3s ease;
+  }
+
+  .card-modern:hover {
+    transform: translateY(-5px);
+  }
+
+  .btn-touch {
+    min-height: 48px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-touch:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+</style>
+{% endblock %} {% block extra_js %}
+<script>
+  let checkInterval;
+  let notificationPermission = "default";
+
+  // Check if results are available
+  function checkResults() {
+    fetch('{% url "voting:voting_status" %}')
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.show_results) {
+          showToast("Results are now available!", "success");
+          setTimeout(() => {
+            window.location.href = '{% url "voting:results" %}';
+          }, 1000);
+        } else {
+          showToast("Results are still hidden. We'll keep checking.", "info");
+        }
+      })
+      .catch((error) => {
+        showToast("Error checking results. Please try again.", "error");
+      });
+  }
+
+  // Update live statistics (only show basic stats when results are hidden)
+  function updateLiveStats() {
+    fetch('{% url "voting:public_analytics_api" %}')
+      .then((response) => response.json())
+      .then((data) => {
+        // Only show total projects count when results are hidden
+        document.getElementById("total-projects").textContent =
+          data.total_projects || 0;
+
+        // Keep vote counts hidden when results are not visible
+        document.getElementById("total-votes").textContent = "0";
+        document.getElementById("participants").textContent = "0";
+      })
+      .catch((error) => {
+        console.error("Error updating live stats:", error);
+        // Fallback to zero values
+        document.getElementById("total-projects").textContent = "0";
+        document.getElementById("total-votes").textContent = "0";
+        document.getElementById("participants").textContent = "0";
+      });
+  }
+
+  // Setup notifications
+  function notifyMe() {
+    const modal = new bootstrap.Modal(
+      document.getElementById("notificationModal")
+    );
+    modal.show();
+  }
+
+  function setupNotifications() {
+    const email = document.getElementById("notificationEmail").value;
+    const browserNotifications = document.getElementById(
+      "browserNotifications"
+    ).checked;
+
+    if (browserNotifications) {
+      // Request notification permission
+      if ("Notification" in window) {
+        Notification.requestPermission().then((permission) => {
+          notificationPermission = permission;
+          if (permission === "granted") {
+            showToast("Browser notifications enabled!", "success");
+          } else {
+            showToast("Browser notifications denied.", "warning");
+          }
+        });
+      }
+    }
+
+    if (email) {
+      // In a real app, you would save this to the backend
+      localStorage.setItem("notificationEmail", email);
+      showToast("Email notifications set up!", "success");
+    }
+
+    bootstrap.Modal.getInstance(
+      document.getElementById("notificationModal")
+    ).hide();
+  }
+
+  // Send browser notification
+  function sendNotification(title, message) {
+    if (notificationPermission === "granted" && "Notification" in window) {
+      new Notification(title, {
+        body: message,
+        icon: "/static/images/sunway_logo.webp",
+        tag: "results-available",
+      });
+    }
+  }
+
+  // Periodic check for results
+  function startPeriodicCheck() {
+    checkInterval = setInterval(() => {
+      fetch('{% url "voting:voting_status" %}')
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.show_results) {
+            // Results are now available
+            clearInterval(checkInterval);
+
+            // Send notification
+            sendNotification(
+              "Results Available!",
+              "Voting results are now available to view."
+            );
+
+            // Show success message
+            showToast("Results are now available! Redirecting...", "success");
+
+            // Redirect after a short delay
+            setTimeout(() => {
+              window.location.href = '{% url "voting:results" %}';
+            }, 2000);
+          }
+        })
+        .catch((error) => {
+          console.error("Error checking results:", error);
+        });
+    }, 30000); // Check every 30 seconds
+  }
+
+  // Initialize on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    updateLiveStats();
+    startPeriodicCheck();
+
+    // Update stats every 30 seconds
+    setInterval(updateLiveStats, 30000);
+
+    // Check for stored notification preferences
+    const savedEmail = localStorage.getItem("notificationEmail");
+    if (savedEmail) {
+      document.getElementById("notificationEmail").value = savedEmail;
+    }
+
+    // Check notification permission
+    if ("Notification" in window) {
+      notificationPermission = Notification.permission;
+    }
+  });
+
+  // Cleanup on page unload
+  window.addEventListener("beforeunload", function () {
+    if (checkInterval) {
+      clearInterval(checkInterval);
+    }
+  });
+</script>
 {% endblock %}

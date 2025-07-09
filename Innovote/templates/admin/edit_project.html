@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Project - Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="py-4 bg-gradient-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-6 fw-bold mb-2">
+                    <i class="fas fa-edit me-3"></i>
+                    Edit Project
+                </h1>
+                <p class="lead mb-0">Update project details and team members</p>
+            </div>
+            <div class="col-lg-4 text-end">
+                <a href="{% url 'voting:admin_dashboard' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card card-modern">
+                    <div class="card-header">
+                        <h4 class="mb-0 text-primary">
+                            <i class="fas fa-project-diagram me-2"></i>
+                            Project Information
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Project Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       value="{{ project.title }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Category *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    {% for value, display in categories %}
+                                        <option value="{{ value }}" {% if project.category == value %}selected{% endif %}>
+                                            {{ display }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description *</label>
+                                <textarea class="form-control" id="description" name="description" 
+                                          rows="4" required>{{ project.description }}</textarea>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-users me-2"></i>
+                                Team Members
+                            </h5>
+                            
+                            <div id="teamMembers">
+                                {% for member in members %}
+                                <div class="row mb-3 team-member">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" name="member_names[]" 
+                                               placeholder="Member Name" value="{{ member.name }}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" name="member_roles[]" 
+                                               placeholder="Role (optional)" value="{{ member.role }}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-member">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                
+                                {% if not members %}
+                                <div class="row mb-3 team-member">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" name="member_names[]" 
+                                               placeholder="Member Name">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" name="member_roles[]" 
+                                               placeholder="Role (optional)">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-member">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="addMember">
+                                <i class="fas fa-plus me-2"></i>
+                                Add Team Member
+                            </button>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'voting:admin_dashboard' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-touch">
+                                    <i class="fas fa-save me-2"></i>
+                                    Update Project
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Current Project Stats -->
+                <div class="card card-modern mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0 text-primary">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Current Project Stats
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <h4 class="text-primary mb-1">{{ project.get_vote_count }}</h4>
+                                    <small class="text-muted">Total Votes</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <h4 class="text-success mb-1">{{ project.get_feedback_count }}</h4>
+                                    <small class="text-muted">Feedback Count</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <h4 class="text-info mb-1">{{ project.members.count }}</h4>
+                                    <small class="text-muted">Team Members</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const teamMembersContainer = document.getElementById('teamMembers');
+    const addMemberBtn = document.getElementById('addMember');
+    
+    // Add new team member
+    addMemberBtn.addEventListener('click', function() {
+        const newMemberHtml = `
+            <div class="row mb-3 team-member">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" name="member_names[]" 
+                           placeholder="Member Name">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="member_roles[]" 
+                           placeholder="Role (optional)">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-member">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        teamMembersContainer.insertAdjacentHTML('beforeend', newMemberHtml);
+        updateRemoveButtons();
+    });
+    
+    // Remove team member
+    function updateRemoveButtons() {
+        const removeButtons = document.querySelectorAll('.remove-member');
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const memberRow = this.closest('.team-member');
+                if (document.querySelectorAll('.team-member').length > 1) {
+                    memberRow.remove();
+                } else {
+                    // Clear inputs if it's the last member
+                    memberRow.querySelectorAll('input').forEach(input => input.value = '');
+                }
+            });
+        });
+    }
+    
+    // Initialize remove buttons
+    updateRemoveButtons();
+});
+</script>
+{% endblock %}

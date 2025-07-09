@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block title %}Create Project - InnoVote{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section class="py-4 bg-gradient-primary text-white">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-6 fw-bold mb-2">
+          <i class="fas fa-plus-circle me-3"></i>
+          Create New Project
+        </h1>
+        <p class="lead mb-0">
+          Add a new project to the exhibition voting system
+        </p>
+      </div>
+      <div class="col-lg-4 text-end">
+        <a href="{% url 'voting:admin_dashboard' %}" class="btn btn-outline-light">
+          <i class="fas fa-arrow-left me-2"></i>
+          Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Form -->
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card card-modern">
+          <div class="card-header">
+            <h3 class="mb-0 text-primary">
+              <i class="fas fa-project-diagram me-2"></i>
+              Project Details
+            </h3>
+          </div>
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
+              
+              <!-- Project Title -->
+              <div class="mb-4">
+                <label for="title" class="form-label">
+                  <i class="fas fa-heading me-2"></i>
+                  Project Title <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="title"
+                  name="title"
+                  required
+                  value="{{ form_data.title|default:'' }}"
+                  placeholder="Enter project title"
+                />
+              </div>
+
+              <!-- Project Description -->
+              <div class="mb-4">
+                <label for="description" class="form-label">
+                  <i class="fas fa-align-left me-2"></i>
+                  Project Description <span class="text-danger">*</span>
+                </label>
+                <textarea
+                  class="form-control"
+                  id="description"
+                  name="description"
+                  rows="5"
+                  required
+                  placeholder="Describe the project, its objectives, and key features"
+                >{{ form_data.description|default:'' }}</textarea>
+              </div>
+
+              <!-- Category -->
+              <div class="mb-4">
+                <label for="category" class="form-label">
+                  <i class="fas fa-tag me-2"></i>
+                  Category
+                </label>
+                <select class="form-select" id="category" name="category">
+                  {% for value, label in categories %}
+                  <option value="{{ value }}" {% if form_data.category == value %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Team Members -->
+              <div class="mb-4">
+                <label class="form-label">
+                  <i class="fas fa-users me-2"></i>
+                  Team Members
+                </label>
+                <div id="team-members">
+                  <div class="row mb-2 team-member-row">
+                    <div class="col-md-6">
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="member_names[]"
+                        placeholder="Member Name"
+                      />
+                    </div>
+                    <div class="col-md-5">
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="member_roles[]"
+                        placeholder="Role (optional)"
+                      />
+                    </div>
+                    <div class="col-md-1">
+                      <button type="button" class="btn btn-outline-danger btn-sm remove-member" style="display: none;">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="add-member">
+                  <i class="fas fa-plus me-2"></i>
+                  Add Team Member
+                </button>
+              </div>
+
+              <!-- Submit Buttons -->
+              <div class="d-flex gap-3 justify-content-end">
+                <a href="{% url 'voting:admin_dashboard' %}" class="btn btn-secondary">
+                  <i class="fas fa-times me-2"></i>
+                  Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-touch">
+                  <i class="fas fa-save me-2"></i>
+                  Create Project
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .team-member-row {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+  }
+  
+  .team-member-row:hover {
+    background-color: #e9ecef;
+  }
+  
+  .btn-touch {
+    min-height: 48px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-touch:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .card-modern {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const teamMembersContainer = document.getElementById('team-members');
+    const addMemberBtn = document.getElementById('add-member');
+    
+    // Add new team member row
+    addMemberBtn.addEventListener('click', function() {
+      const newRow = document.createElement('div');
+      newRow.className = 'row mb-2 team-member-row';
+      newRow.innerHTML = `
+        <div class="col-md-6">
+          <input
+            type="text"
+            class="form-control"
+            name="member_names[]"
+            placeholder="Member Name"
+          />
+        </div>
+        <div class="col-md-5">
+          <input
+            type="text"
+            class="form-control"
+            name="member_roles[]"
+            placeholder="Role (optional)"
+          />
+        </div>
+        <div class="col-md-1">
+          <button type="button" class="btn btn-outline-danger btn-sm remove-member">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+      
+      teamMembersContainer.appendChild(newRow);
+      updateRemoveButtons();
+    });
+    
+    // Remove team member row
+    teamMembersContainer.addEventListener('click', function(e) {
+      if (e.target.closest('.remove-member')) {
+        e.target.closest('.team-member-row').remove();
+        updateRemoveButtons();
+      }
+    });
+    
+    // Update remove button visibility
+    function updateRemoveButtons() {
+      const rows = teamMembersContainer.querySelectorAll('.team-member-row');
+      rows.forEach((row, index) => {
+        const removeBtn = row.querySelector('.remove-member');
+        if (rows.length > 1) {
+          removeBtn.style.display = 'block';
+        } else {
+          removeBtn.style.display = 'none';
+        }
+      });
+    }
+    
+    // Auto-resize textarea
+    const textarea = document.getElementById('description');
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+  });
+</script>
+{% endblock %}

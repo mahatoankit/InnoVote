@@ -1,239 +1,510 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Voting Results -
-InnoVote{% endblock %} {% block content %}
-<!-- Results Section -->
-<section class="py-5">
+{% extends 'base.html' %} {% block title %}Voting Results - InnoVote{% endblock
+%} {% block content %}
+<!-- Results Header -->
+<section class="py-5 bg-gradient-primary text-white">
   <div class="container">
-    <div class="row mb-5">
-      <div class="col-12">
-        <div class="text-center">
-          <h1 class="mb-3">
-            <i class="fas fa-trophy me-3 text-warning"></i>Voting Results
-          </h1>
-          <p class="lead text-muted">
-            Total votes cast:
-            <strong class="text-primary">{{ total_votes }}</strong>
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      {% for project in projects %}
-      <div class="col-lg-6 mb-4">
-        <div class="results-card">
-          <div class="row align-items-center">
-            <!-- Project Image -->
-            <div class="col-md-4">
-              {% if project.image %}
-              <img
-                src="{{ project.image.url }}"
-                class="img-fluid rounded"
-                alt="{{ project.title }}"
-                style="height: 120px; width: 100%; object-fit: cover"
-              />
-              {% else %}
-              <div
-                class="bg-light rounded d-flex align-items-center justify-content-center"
-                style="height: 120px"
-              >
-                <i class="fas fa-project-diagram fa-2x text-muted"></i>
-              </div>
-              {% endif %}
-            </div>
-
-            <!-- Project Info -->
-            <div class="col-md-8">
-              <div
-                class="d-flex justify-content-between align-items-start mb-2"
-              >
-                <div>
-                  <h5 class="mb-1">{{ project.title }}</h5>
-                  <span class="category-badge"
-                    >{{ project.get_category_display }}</span
-                  >
-                </div>
-                <div class="text-end">
-                  {% if forloop.counter == 1 %}
-                  <i class="fas fa-crown fa-2x text-warning"></i>
-                  {% elif forloop.counter == 2 %}
-                  <i class="fas fa-medal fa-2x" style="color: #c0c0c0"></i>
-                  {% elif forloop.counter == 3 %}
-                  <i class="fas fa-medal fa-2x" style="color: #cd7f32"></i>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Vote Count -->
-              <div class="mb-2">
-                <span class="vote-count">{{ project.vote_count }}</span>
-                <span class="text-muted"
-                  >vote{{ project.vote_count|pluralize }}</span
-                >
-              </div>
-
-              <!-- Progress Bar -->
-              <div class="progress mb-2" style="height: 10px">
-                {% widthratio project.vote_count total_votes 100 as percentage
-                %}
-                <div
-                  class="progress-bar"
-                  role="progressbar"
-                  style="width: {% if total_votes > 0 %}{{ percentage }}%{% else %}0%{% endif %}"
-                ></div>
-              </div>
-
-              <!-- Percentage -->
-              <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">
-                  {% if total_votes > 0 %} {{ percentage }}% of total votes {%
-                  else %} 0% of total votes {% endif %}
-                </small>
-                <a
-                  href="{% url 'voting:project_detail' project.id %}"
-                  class="btn btn-sm btn-outline-primary"
-                >
-                  <i class="fas fa-eye me-1"></i>View Details
-                </a>
-              </div>
-            </div>
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-4 fw-bold mb-3">
+          <i class="fas fa-trophy me-3"></i>
+          Voting Results
+        </h1>
+        <p class="lead mb-4">
+          See how the community has voted for their favorite innovative projects
+        </p>
+        <div class="d-flex flex-wrap gap-4">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-vote-yea me-2"></i>
+            <span class="fw-bold">{{ total_votes }}</span>
+            <span class="ms-1">Total Votes</span>
+          </div>
+          <div class="d-flex align-items-center">
+            <i class="fas fa-project-diagram me-2"></i>
+            <span class="fw-bold">{{ projects|length }}</span>
+            <span class="ms-1">Projects</span>
+          </div>
+          <div class="d-flex align-items-center">
+            <i class="fas fa-users me-2"></i>
+            <span class="fw-bold" id="participants-count">Loading...</span>
+            <span class="ms-1">Participants</span>
           </div>
         </div>
       </div>
-      {% empty %}
-      <div class="col-12">
-        <div class="text-center py-5">
-          <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
-          <h3 class="text-muted">No Projects Yet</h3>
-          <p class="text-muted">
-            Results will be displayed here once projects are added and voting
-            begins.
-          </p>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- Statistics Card -->
-    {% if projects %}
-    <div class="row mt-5">
-      <div class="col-12">
-        <div class="card border-primary">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">
-              <i class="fas fa-chart-line me-2"></i>Voting Statistics
-            </h5>
-          </div>
+      <div class="col-lg-4 text-center">
+        <div class="card card-modern bg-white text-dark">
           <div class="card-body">
-            <div class="row text-center">
-              <div class="col-md-3 mb-3">
-                <h4 class="text-primary">{{ projects.count }}</h4>
-                <p class="text-muted mb-0">Total Projects</p>
-              </div>
-              <div class="col-md-3 mb-3">
-                <h4 class="text-success">{{ total_votes }}</h4>
-                <p class="text-muted mb-0">Total Votes</p>
-              </div>
-              <div class="col-md-3 mb-3">
-                {% with projects.first as winner %}
-                <h4 class="text-warning">
-                  {% if winner %}{{ winner.vote_count }}{% else %}0{% endif %}
-                </h4>
-                <p class="text-muted mb-0">Highest Votes</p>
-                {% endwith %}
-              </div>
-              <div class="col-md-3 mb-3">
-                <h4 class="text-info">
-                  {% if total_votes > 0 and projects.count > 0 %} {{
-                  total_votes|floatformat:0 }} {% else %} 0 {% endif %}
-                </h4>
-                <p class="text-muted mb-0">Avg Votes per Project</p>
-              </div>
+            <h5 class="card-title text-primary">Live Updates</h5>
+            <p class="card-text">Results update automatically</p>
+            <div class="voting-status">
+              <span class="status-indicator status-inactive"></span>
+              <span class="status-text">Checking status...</span>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Top 3 Podium (if we have results) -->
-    {% if projects and total_votes > 0 %}
-    <div class="row mt-5">
-      <div class="col-12">
-        <h3 class="text-center mb-4">
-          <i class="fas fa-podium me-2"></i>Top 3 Projects
-        </h3>
-        <div class="row justify-content-center">
-          {% for project in projects|slice:":3" %}
-          <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow text-center">
-              <div class="card-body">
-                {% if forloop.counter == 1 %}
-                <div class="mb-3">
-                  <i class="fas fa-crown fa-3x text-warning"></i>
-                  <h5 class="text-warning mt-2">1st Place</h5>
-                </div>
-                {% elif forloop.counter == 2 %}
-                <div class="mb-3">
-                  <i class="fas fa-medal fa-3x" style="color: #c0c0c0"></i>
-                  <h5 class="mt-2" style="color: #c0c0c0">2nd Place</h5>
-                </div>
-                {% elif forloop.counter == 3 %}
-                <div class="mb-3">
-                  <i class="fas fa-medal fa-3x" style="color: #cd7f32"></i>
-                  <h5 class="mt-2" style="color: #cd7f32">3rd Place</h5>
-                </div>
-                {% endif %}
-
-                <h6 class="card-title">{{ project.title }}</h6>
-                <p class="text-muted">
-                  {{ project.vote_count }} vote{{ project.vote_count|pluralize
-                  }}
-                </p>
-                <span class="category-badge"
-                  >{{ project.get_category_display }}</span
-                >
-              </div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Action Buttons -->
-    <div class="row mt-5">
-      <div class="col-12 text-center">
-        <a href="{% url 'voting:home' %}" class="btn btn-primary btn-lg me-3">
-          <i class="fas fa-arrow-left me-2"></i>Back to Projects
-        </a>
-        <button
-          onclick="window.print()"
-          class="btn btn-outline-secondary btn-lg"
-        >
-          <i class="fas fa-print me-2"></i>Print Results
-        </button>
       </div>
     </div>
   </div>
 </section>
+
+<!-- Results Content -->
+<section class="py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-8">
+        <!-- Leaderboard -->
+        <div class="card card-modern mb-4">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h3 class="mb-0 text-primary">
+                <i class="fas fa-trophy me-2"></i>
+                Project Leaderboard
+              </h3>
+              <div class="btn-group" role="group">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary active"
+                  onclick="showView('leaderboard')"
+                >
+                  <i class="fas fa-list me-1"></i>List
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  onclick="showView('chart')"
+                >
+                  <i class="fas fa-chart-bar me-1"></i>Chart
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- Leaderboard View -->
+            <div id="leaderboard-view">
+              {% for project in projects %}
+              <div class="position-relative mb-3">
+                <div
+                  class="d-flex align-items-center p-3 bg-light rounded project-item"
+                  data-votes="{{ project.vote_count }}"
+                >
+                  <!-- Position Badge -->
+                  <div class="position-badge me-3">
+                    {% if forloop.counter == 1 %}
+                    <div class="badge bg-warning text-dark fs-5 position-first">
+                      <i class="fas fa-crown me-1"></i>1st
+                    </div>
+                    {% elif forloop.counter == 2 %}
+                    <div class="badge bg-light text-dark fs-6 position-second">
+                      <i class="fas fa-medal me-1"></i>2nd
+                    </div>
+                    {% elif forloop.counter == 3 %}
+                    <div class="badge bg-warning text-dark fs-6 position-third">
+                      <i class="fas fa-award me-1"></i>3rd
+                    </div>
+                    {% else %}
+                    <div class="badge bg-secondary fs-6">
+                      {{ forloop.counter }}th
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <!-- Project Info -->
+                  <div class="flex-grow-1">
+                    <h5 class="mb-1">
+                      <a
+                        href="{% url 'voting:project_detail' project.id %}"
+                        class="text-decoration-none"
+                      >
+                        {{ project.title }}
+                      </a>
+                    </h5>
+                    <div class="d-flex align-items-center gap-3">
+                      <span class="badge bg-primary"
+                        >{{ project.get_category_display }}</span
+                      >
+                      <small class="text-muted">
+                        <i class="fas fa-users me-1"></i>
+                        {{ project.members.count }} member{{
+                        project.members.count|pluralize }}
+                      </small>
+                    </div>
+                  </div>
+
+                  <!-- Vote Count -->
+                  <div class="text-end">
+                    <div class="vote-count-display">
+                      <span class="fs-3 fw-bold text-primary"
+                        >{{ project.vote_count }}</span
+                      >
+                      <div class="text-muted small">
+                        vote{{ project.vote_count|pluralize }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress mt-2" style="height: 6px">
+                  <div
+                    class="progress-bar bg-primary"
+                    style="width: {% if total_votes %}{{ project.vote_count|mul:100|div:total_votes }}%{% else %}0%{% endif %}"
+                  ></div>
+                </div>
+
+                <!-- Percentage -->
+                <div class="text-end mt-1">
+                  <small class="text-muted">
+                    {% if total_votes %} {{
+                    project.vote_count|mul:100|div:total_votes|floatformat:1 }}%
+                    {% else %} 0% {% endif %}
+                  </small>
+                </div>
+              </div>
+              {% empty %}
+              <div class="text-center py-4">
+                <i class="fas fa-vote-yea fs-1 text-muted mb-3"></i>
+                <h5 class="text-muted">No votes yet</h5>
+                <p class="text-muted">
+                  Results will appear here once voting begins.
+                </p>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Chart View -->
+            <div id="chart-view" class="d-none">
+              <canvas id="votingChart" width="400" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="card card-modern">
+          <div class="card-header">
+            <h3 class="mb-0 text-primary">
+              <i class="fas fa-chart-pie me-2"></i>
+              Category Breakdown
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              {% regroup projects by category as category_groups %} {% for
+              category in category_groups %}
+              <div class="col-md-4 mb-3">
+                <div class="text-center p-3 bg-light rounded">
+                  <i class="fas fa-tag fs-2 text-primary mb-2"></i>
+                  <h6 class="text-uppercase fw-bold">
+                    {{ category.grouper|title }}
+                  </h6>
+                  <div class="d-flex justify-content-center gap-3">
+                    <div>
+                      <span class="fs-5 fw-bold"
+                        >{{ category.list|length }}</span
+                      >
+                      <div class="small text-muted">Projects</div>
+                    </div>
+                    <div>
+                      <span class="fs-5 fw-bold text-success">
+                        {% for project in category.list %}{{
+                        project.vote_count|add:0 }}{% if not forloop.last %}+{%
+                        endif %}{% endfor %}
+                      </span>
+                      <div class="small text-muted">Votes</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-md-4">
+        <!-- Top Performers -->
+        <div class="card card-modern mb-4">
+          <div class="card-header">
+            <h5 class="mb-0 text-primary">
+              <i class="fas fa-star me-2"></i>
+              Top Performers
+            </h5>
+          </div>
+          <div class="card-body">
+            {% for project in projects|slice:":3" %}
+            <div class="d-flex align-items-center mb-3">
+              <div class="me-3">
+                {% if forloop.counter == 1 %}
+                <i class="fas fa-crown text-warning fs-4"></i>
+                {% elif forloop.counter == 2 %}
+                <i class="fas fa-medal text-secondary fs-4"></i>
+                {% else %}
+                <i class="fas fa-award text-warning fs-4"></i>
+                {% endif %}
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="mb-1">{{ project.title }}</h6>
+                <small class="text-muted">{{ project.vote_count }} votes</small>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Live Statistics -->
+        <div class="card card-modern mb-4">
+          <div class="card-header">
+            <h5 class="mb-0 text-primary">
+              <i class="fas fa-sync-alt me-2"></i>
+              Live Statistics
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-6">
+                <div class="border-end">
+                  <h4 class="text-primary" id="total-votes">
+                    {{ total_votes }}
+                  </h4>
+                  <small class="text-muted">Total Votes</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <h4 class="text-success" id="participation-rate">0%</h4>
+                <small class="text-muted">Participation</small>
+              </div>
+            </div>
+            <hr />
+            <div class="text-center">
+              <small class="text-muted">
+                <i class="fas fa-clock me-1"></i>
+                Last updated: <span id="last-updated">Just now</span>
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Voting Timeline -->
+        <div class="card card-modern">
+          <div class="card-header">
+            <h5 class="mb-0 text-primary">
+              <i class="fas fa-history me-2"></i>
+              Recent Activity
+            </h5>
+          </div>
+          <div class="card-body">
+            <div id="recent-activity">
+              <!-- Activity will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Auto-refresh notification -->
+<div class="position-fixed bottom-0 start-0 m-3">
+  <div
+    class="alert alert-info d-flex align-items-center auto-refresh-alert"
+    role="alert"
+  >
+    <i class="fas fa-sync-alt me-2"></i>
+    <small>Results update automatically every 30 seconds</small>
+  </div>
+</div>
 {% endblock %} {% block extra_css %}
 <style>
-  @media print {
-    .navbar,
-    .btn,
-    footer {
-      display: none !important;
-    }
+  .position-first {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
 
-    .results-card {
-      page-break-inside: avoid;
-      margin-bottom: 1rem;
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 5px #ffc107;
     }
+    to {
+      box-shadow: 0 0 20px #ffc107;
+    }
+  }
 
-    .progress-bar {
-      background-color: #000 !important;
+  .project-item {
+    transition: transform 0.3s ease;
+  }
+
+  .project-item:hover {
+    transform: translateX(10px);
+  }
+
+  .vote-count-display {
+    min-width: 80px;
+  }
+
+  .auto-refresh-alert {
+    animation: slideIn 0.5s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
     }
   }
 </style>
+{% endblock %} {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  let votingChart;
+
+  // Show different views
+  function showView(viewType) {
+      const leaderboardView = document.getElementById('leaderboard-view');
+      const chartView = document.getElementById('chart-view');
+      const buttons = document.querySelectorAll('.btn-group button');
+
+      buttons.forEach(btn => btn.classList.remove('active'));
+
+      if (viewType === 'leaderboard') {
+          leaderboardView.classList.remove('d-none');
+          chartView.classList.add('d-none');
+          event.target.classList.add('active');
+      } else {
+          leaderboardView.classList.add('d-none');
+          chartView.classList.remove('d-none');
+          event.target.classList.add('active');
+          createChart();
+      }
+  }
+
+  // Create voting chart
+  function createChart() {
+      const ctx = document.getElementById('votingChart').getContext('2d');
+
+      if (votingChart) {
+          votingChart.destroy();
+      }
+
+      const projects = [];
+      const votes = [];
+      const colors = [];
+
+      {% for project in projects %}
+      projects.push('{{ project.title|truncatechars:20 }}');
+      votes.push({{ project.vote_count }});
+      colors.push('#' + Math.floor(Math.random()*16777215).toString(16));
+      {% endfor %}
+
+      votingChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: projects,
+              datasets: [{
+                  label: 'Votes',
+                  data: votes,
+                  backgroundColor: 'rgba(193, 42, 55, 0.6)',
+                  borderColor: 'rgba(193, 42, 55, 1)',
+                  borderWidth: 1
+              }]
+          },
+          options: {
+              responsive: true,
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      ticks: {
+                          stepSize: 1
+                      }
+                  }
+              }
+          }
+      });
+  }
+
+  // Update live statistics
+  function updateLiveStats() {
+      fetch('{% url "voting:analytics_api" %}')
+          .then(response => response.json())
+          .then(data => {
+              document.getElementById('total-votes').textContent = data.total_votes;
+              document.getElementById('participants-count').textContent = data.used_voting_ids;
+
+              // Calculate participation rate
+              const participationRate = data.total_voting_ids > 0 ?
+                  (data.used_voting_ids / data.total_voting_ids * 100).toFixed(1) : 0;
+              document.getElementById('participation-rate').textContent = participationRate + '%';
+
+              // Update recent activity
+              updateRecentActivity(data.recent_votes);
+
+              // Update last updated time
+              document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+          })
+          .catch(error => {
+              console.error('Error updating live stats:', error);
+          });
+  }
+
+  // Update recent activity
+  function updateRecentActivity(recentVotes) {
+      const activityContainer = document.getElementById('recent-activity');
+
+      if (recentVotes.length === 0) {
+          activityContainer.innerHTML = `
+              <div class="text-center text-muted py-3">
+                  <i class="fas fa-history fs-3 mb-2"></i>
+                  <p>No recent activity</p>
+              </div>
+          `;
+          return;
+      }
+
+      let activityHTML = '';
+      recentVotes.slice(0, 5).forEach((vote, index) => {
+          activityHTML += `
+              <div class="d-flex align-items-center mb-2">
+                  <div class="me-2">
+                      <i class="fas fa-vote-yea text-primary"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                      <small>
+                          Vote for <strong>${vote.project}</strong>
+                          <div class="text-muted">${vote.timestamp}</div>
+                      </small>
+                  </div>
+              </div>
+          `;
+      });
+
+      activityContainer.innerHTML = activityHTML;
+  }
+
+  // Auto-refresh functionality
+  document.addEventListener('DOMContentLoaded', function() {
+      updateLiveStats();
+      setInterval(updateLiveStats, 30000); // Update every 30 seconds
+
+      // Animate progress bars on load
+      setTimeout(() => {
+          const progressBars = document.querySelectorAll('.progress-bar');
+          progressBars.forEach(bar => {
+              bar.style.transition = 'width 1s ease-in-out';
+          });
+      }, 500);
+  });
+
+  // Sort projects by votes (for dynamic updates)
+  function sortProjects() {
+      const projectItems = Array.from(document.querySelectorAll('.project-item'));
+      projectItems.sort((a, b) => {
+          const votesA = parseInt(a.dataset.votes);
+          const votesB = parseInt(b.dataset.votes);
+          return votesB - votesA;
+      });
+
+      // Re-append sorted items
+      const parent = projectItems[0].parentElement;
+      projectItems.forEach(item => parent.appendChild(item));
+  }
+</script>
 {% endblock %}

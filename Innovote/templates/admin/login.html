@@ -1,0 +1,172 @@
+{% extends 'base.html' %} {% block title %}Admin Login - InnoVote{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8">
+        <div class="card card-modern shadow-lg">
+          <div class="card-header bg-gradient-primary text-white text-center">
+            <h3 class="mb-0">
+              <i class="fas fa-shield-alt me-2"></i>
+              Admin Login
+            </h3>
+            <p class="mb-0 mt-2">
+              Enter your credentials to access the admin dashboard
+            </p>
+            <small class="text-muted">
+              <i class="fas fa-info-circle me-1"></i>
+              For security, credentials are required every time you access the
+              admin dashboard
+            </small>
+          </div>
+          <div class="card-body p-4">
+            {% if messages %} {% for message in messages %}
+            <div
+              class="alert alert-{{ message.tags }} alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-exclamation-circle me-2"></i>
+              {{ message }}
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+              ></button>
+            </div>
+            {% endfor %} {% endif %}
+
+            <form method="POST">
+              {% csrf_token %}
+
+              <div class="mb-3">
+                <label for="username" class="form-label">
+                  <i class="fas fa-user me-2"></i>
+                  Username
+                </label>
+                <input
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="username"
+                  name="username"
+                  required
+                  autocomplete="username"
+                  placeholder="Enter your username"
+                />
+              </div>
+
+              <div class="mb-4">
+                <label for="password" class="form-label">
+                  <i class="fas fa-lock me-2"></i>
+                  Password
+                </label>
+                <input
+                  type="password"
+                  class="form-control form-control-lg"
+                  id="password"
+                  name="password"
+                  required
+                  autocomplete="current-password"
+                  placeholder="Enter your password"
+                />
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg btn-touch">
+                  <i class="fas fa-sign-in-alt me-2"></i>
+                  Login to Admin Dashboard
+                </button>
+              </div>
+            </form>
+          </div>
+          <div class="card-footer text-center bg-light">
+            <small class="text-muted">
+              <i class="fas fa-info-circle me-1"></i>
+              Only authorized staff members can access the admin dashboard
+            </small>
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <a href="{% url 'voting:home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to Voting System
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %} {% block extra_css %}
+<style>
+  .card-modern {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #c12a37 0%, #8b1538 100%);
+  }
+
+  .form-control-lg {
+    border-radius: 10px;
+    padding: 15px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+  }
+
+  .form-control-lg:focus {
+    border-color: #c12a37;
+    box-shadow: 0 0 0 0.2rem rgba(193, 42, 55, 0.25);
+  }
+
+  .btn-touch {
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary.btn-touch:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(193, 42, 55, 0.4);
+  }
+
+  .alert {
+    border-radius: 10px;
+    border: none;
+  }
+
+  .card-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.125);
+  }
+</style>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Focus on username field
+    document.getElementById("username").focus();
+
+    // Form validation
+    const form = document.querySelector("form");
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+
+    form.addEventListener("submit", function (e) {
+      if (!usernameInput.value.trim() || !passwordInput.value.trim()) {
+        e.preventDefault();
+        alert("Please fill in both username and password");
+      }
+    });
+
+    // Enter key submission
+    [usernameInput, passwordInput].forEach((input) => {
+      input.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          form.submit();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

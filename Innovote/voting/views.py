@@ -20,8 +20,18 @@ def get_client_ip(request):
     return ip
 
 
+def clear_admin_session_on_public_view(request):
+    """Clear admin session when accessing public views"""
+    if "admin_authenticated" in request.session:
+        request.session.pop("admin_authenticated", None)
+        request.session.pop("admin_login_time", None)
+
+
 def home(request):
     """Home page showing all projects"""
+    # Clear admin session when accessing public views
+    clear_admin_session_on_public_view(request)
+
     # Get voting session status
     voting_session = VotingSession.objects.first()
     if not voting_session:
@@ -40,6 +50,9 @@ def home(request):
 
 def project_detail(request, project_id):
     """Project detail page"""
+    # Clear admin session when accessing public views
+    clear_admin_session_on_public_view(request)
+
     project = get_object_or_404(Project, id=project_id)
     voting_session = VotingSession.objects.first()
 
@@ -129,6 +142,9 @@ def submit_feedback(request):
 
 def results(request):
     """Show voting results if enabled"""
+    # Clear admin session when accessing public views
+    clear_admin_session_on_public_view(request)
+
     voting_session = VotingSession.objects.first()
 
     if not voting_session or not voting_session.show_results:
@@ -152,16 +168,21 @@ def results(request):
 
 
 @staff_member_required
+@staff_member_required
 def generate_voting_ids(request):
-    """Admin view to generate voting IDs"""
+    """Admin view to generate voting IDs - clears all previous IDs"""
     if request.method == "POST":
         try:
             count = int(request.POST.get("count", 0))
             if count <= 0 or count > 1000:
                 messages.error(request, "Please enter a number between 1 and 1000.")
-                return redirect("admin:voting_votingid_changelist")
+                return redirect("voting:admin_dashboard")
 
-            # Generate voting IDs
+            # Clear all existing voting IDs
+            deleted_count = VotingID.objects.count()
+            VotingID.objects.all().delete()
+
+            # Generate new voting IDs (uppercase letters only)
             generated_codes = []
             for _ in range(count):
                 code = VotingID.generate_unique_code()
@@ -172,16 +193,19 @@ def generate_voting_ids(request):
             AdminLog.objects.create(
                 user=request.user,
                 action="generate_ids",
-                description=f"Generated {count} voting IDs",
+                description=f"Cleared {deleted_count} old IDs and generated {count} new voting IDs (A-Z only)",
                 ip_address=get_client_ip(request),
             )
 
-            messages.success(request, f"Successfully generated {count} voting IDs.")
-            return redirect("admin:voting_votingid_changelist")
+            messages.success(
+                request,
+                f"Successfully cleared all previous IDs and generated {count} new voting IDs using uppercase letters only.",
+            )
+            return redirect("voting:admin_dashboard")
 
         except ValueError:
             messages.error(request, "Invalid number format.")
-            return redirect("admin:voting_votingid_changelist")
+            return redirect("voting:admin_dashboard")
 
     return render(request, "admin/generate_voting_ids.html")
 
@@ -243,5 +267,45 @@ def check_voting_status(request):
         {
             "is_active": voting_session.is_active if voting_session else False,
             "show_results": voting_session.show_results if voting_session else False,
+        }
+    )
+
+
+def public_analytics_api(request):
+    """Public API endpoint for analytics data - respects show_results setting"""
+    voting_session = VotingSession.objects.first()
+
+    if not voting_session or not voting_session.show_results:
+        # If results are hidden, return empty/zero data
+        return JsonResponse(
+            {
+                "results_visible": False,
+                "projects": [],
+                "total_votes": 0,
+                "total_feedbacks": 0,
+                "total_projects": Project.objects.count(),
+                "used_voting_ids": 0,
+            }
+        )
+
+    # Get votes per project
+    projects_data = []
+    for project in Project.objects.all():
+        projects_data.append(
+            {
+                "name": project.title,
+                "votes": project.get_vote_count(),
+                "feedbacks": project.get_feedback_count(),
+            }
+        )
+
+    return JsonResponse(
+        {
+            "results_visible": True,
+            "projects": projects_data,
+            "total_votes": Vote.objects.count(),
+            "total_feedbacks": Feedback.objects.count(),
+            "total_projects": Project.objects.count(),
+            "used_voting_ids": VotingID.objects.filter(used=True).count(),
         }
     )
