@@ -30,18 +30,22 @@ class Project(models.Model):
     """Model for exhibition projects"""
 
     CATEGORY_CHOICES = [
-        ("tech", "Technology"),
-        ("environment", "Environment"),
-        ("health", "Health"),
-        ("education", "Education"),
-        ("social", "Social Innovation"),
-        ("other", "Other"),
+        ("education_learning", "Education & Learning Technology"),
+        ("agriculture", "Agriculture Technology"),
+        ("sports", "Sports Technology"),
+        ("legal_cybersecurity", "Legal & Cybersecurity AI"),
+        ("health_wellness", "Health & Wellness AI"),
+        ("financial_business", "Financial & Business Innovations"),
+        ("public_services", "Public Services & Information"),
+        ("human_resources", "Human Resources and Career Development"),
+        ("smart_living", "Smart Living and Sustainability"),
+        ("language_ai", "Language and Advanced AI Research"),
     ]
 
     title = models.CharField(max_length=200)
     description = models.TextField()
     category = models.CharField(
-        max_length=20, choices=CATEGORY_CHOICES, default="other"
+        max_length=30, choices=CATEGORY_CHOICES, default="education_learning"
     )
     # image = models.ImageField(upload_to="project_images/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

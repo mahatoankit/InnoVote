@@ -105,8 +105,8 @@
                         class="status-indicator {% if voting_session.is_active %}status-active{% else %}status-inactive{% endif %}"
                       ></span>
                       <span class="fw-bold">
-                        {% if voting_session.is_active %} Voting Active {% else
-                        %} Voting Stopped {% endif %}
+                        {% if voting_session.is_active %} Voting Active 
+                        {% else %} Voting Stopped {% endif %}
                       </span>
                     </div>
                     <div class="form-check form-switch">
@@ -114,12 +114,7 @@
                         class="form-check-input"
                         type="checkbox"
                         id="votingToggle"
-                        {%
-                        if
-                        voting_session.is_active
-                        %}checked{%
-                        endif
-                        %}
+                        {% if voting_session.is_active %}checked{% endif %}
                       />
                     </div>
                   </div>
