@@ -228,19 +228,101 @@
     <main>{% block content %}{% endblock %}</main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
+    <footer class="bg-dark text-white py-5 mt-5">
       <div class="container">
-        <div class="row">
+        <div class="row g-4">
+          <div class="col-lg-4 col-md-6">
+            <h5 class="text-primary mb-3">
+              <i class="fas fa-vote-yea me-2"></i>
+              InnoVote
+            </h5>
+            <p class="text-light mb-3">
+              A secure, fair, and modern college exhibition voting system
+              designed to recognize innovation and creativity in student
+              projects.
+            </p>
+            <div class="d-flex gap-3">
+              <a href="#" class="text-light fs-5"
+                ><i class="fab fa-github"></i
+              ></a>
+              <a href="#" class="text-light fs-5"
+                ><i class="fab fa-linkedin"></i
+              ></a>
+              <a href="#" class="text-light fs-5"
+                ><i class="fab fa-twitter"></i
+              ></a>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6">
+            <h5 class="text-primary mb-3">
+              <i class="fas fa-info-circle me-2"></i>
+              About the Platform
+            </h5>
+            <ul class="list-unstyled text-light">
+              <li class="mb-2">
+                <i class="fas fa-check me-2 text-success"></i>
+                Secure voting with unique IDs
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-check me-2 text-success"></i>
+                Real-time analytics dashboard
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-check me-2 text-success"></i>
+                Feedback collection system
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-check me-2 text-success"></i>
+                Mobile-friendly interface
+              </li>
+            </ul>
+          </div>
+
+          <div class="col-lg-4 col-md-12">
+            <h5 class="text-primary mb-3">
+              <i class="fas fa-code me-2"></i>
+              Developer Information
+            </h5>
+            <div class="text-light">
+              <p class="mb-2">
+                <i class="fas fa-user me-2 text-primary"></i>
+                <strong>Ankit Mahato</strong>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-crown me-2 text-warning"></i>
+                Head of AI Club
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-building me-2 text-info"></i>
+                SSRC (Student Society & Research Club)
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-envelope me-2 text-success"></i>
+                <a
+                  href="mailto:chaudhryankit848@gmail.com"
+                  class="text-light text-decoration-none"
+                >
+                  chaudhryankit848@gmail.com
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4 border-secondary" />
+
+        <div class="row align-items-center">
           <div class="col-md-6">
-            <h5>InnoVote</h5>
-            <p class="mb-0">
-              Fair & Secure Voting System for College Exhibition
+            <p class="mb-0 text-light">
+              <i class="fas fa-copyright me-2"></i>
+              {{ "now"|date:"Y" }} InnoVote. All rights reserved.
             </p>
           </div>
           <div class="col-md-6 text-md-end">
-            <p class="mb-0">
-              <i class="fas fa-shield-alt me-2"></i>
-              Secure • Fair • Transparent
+            <p class="mb-0 text-light">
+              <i class="fas fa-heart me-2 text-danger"></i>
+              Made with passion for innovation
             </p>
           </div>
         </div>
@@ -349,10 +431,13 @@
           });
       }
 
-      // Check status on page load and every 30 seconds
+      // Check status on page load and every 30 seconds (but not on admin dashboard)
       document.addEventListener("DOMContentLoaded", function () {
-        checkVotingStatus();
-        setInterval(checkVotingStatus, 30000);
+        // Skip status checking on admin dashboard to avoid conflicts
+        if (!document.getElementById("votingToggle")) {
+          checkVotingStatus();
+          setInterval(checkVotingStatus, 30000);
+        }
       });
     </script>
 

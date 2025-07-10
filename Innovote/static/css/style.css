@@ -58,17 +58,7 @@ body {
     padding: 12px 24px;
     font-size: 1.1rem;
     border-radius: 8px;
-    transition: all 0.3s ease;
     touch-action: manipulation;
-}
-
-.btn-touch:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.btn-touch:active {
-    transform: translateY(0);
 }
 
 /* Card styling */
@@ -76,12 +66,6 @@ body {
     border: none;
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card-modern:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 /* Gradient backgrounds */
@@ -110,17 +94,10 @@ body {
 
 .status-active {
     background-color: var(--accent-color);
-    animation: pulse 2s infinite;
 }
 
 .status-inactive {
     background-color: var(--danger-color);
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
 }
 
 /* Loading spinner */
@@ -178,116 +155,10 @@ body {
 
 /* Project cards */
 .project-card {
-    transition: transform 0.3s ease;
-}
-
-.project-card:hover {
-    transform: scale(1.02);
-}
-
-/* Form enhancements */
-.form-control:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(193, 42, 55, 0.25);
-}
-
-/* Badge styling */
-.badge {
-    font-size: 0.85em;
-    padding: 0.5em 0.75em;
-}
-
-/* Table enhancements */
-.table-hover tbody tr:hover {
-    background-color: rgba(193, 42, 55, 0.05);
-}
-
-/* Voting modal enhancements */
-.modal-content {
-    border-radius: 15px;
-    border: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-
-.modal-header {
-    border-bottom: 1px solid var(--light-gray);
-}
-
-.modal-footer {
-    border-top: 1px solid var(--light-gray);
-}
-
-/* Progress bars */
-.progress {
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    transition: width 0.8s ease;
-}
-
-/* Animations */
-.fadeIn {
-    animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.slideInLeft {
-    animation: slideInLeft 0.5s ease-out;
-}
-
-@keyframes slideInLeft {
-    from { transform: translateX(-100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-/* Accessibility improvements */
-.btn:focus,
-.form-control:focus,
-.form-select:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .card-modern {
-        border: 2px solid var(--dark-color);
-    }
-    
-    .btn-outline-primary {
-        border-width: 2px;
-    }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* Project cards */
-.project-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: none;
     border-radius: 15px;
     overflow: hidden;
     height: 100%;
-}
-
-.project-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .project-card .card-img-top {
@@ -451,16 +322,6 @@ body {
 .spinner {
     width: 1rem;
     height: 1rem;
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.fade-in {
-    animation: fadeIn 0.5s ease-in-out;
 }
 
 /* Success/Error messages */

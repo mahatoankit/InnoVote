@@ -1,5 +1,9 @@
-{% extends 'base.html' %} {% block title %}Voting Results - InnoVote{% endblock
-%} {% block content %}
+{% extends 'base.html' %} 
+{% load mathfilters %}
+
+{% block title %}Voting Results - InnoVote{% endblock %} 
+
+{% block content %}
 <!-- Results Header -->
 <section class="py-5 bg-gradient-primary text-white">
   <div class="container">
@@ -63,14 +67,14 @@
                 <button
                   type="button"
                   class="btn btn-outline-primary active"
-                  onclick="showView('leaderboard')"
+                  onclick="showView('leaderboard', event)"
                 >
                   <i class="fas fa-list me-1"></i>List
                 </button>
                 <button
                   type="button"
                   class="btn btn-outline-primary"
-                  onclick="showView('chart')"
+                  onclick="showView('chart', event)"
                 >
                   <i class="fas fa-chart-bar me-1"></i>Chart
                 </button>
@@ -93,15 +97,15 @@
                       <i class="fas fa-crown me-1"></i>1st
                     </div>
                     {% elif forloop.counter == 2 %}
-                    <div class="badge bg-light text-dark fs-6 position-second">
+                    <div class="badge bg-secondary fs-6 position-second">
                       <i class="fas fa-medal me-1"></i>2nd
                     </div>
                     {% elif forloop.counter == 3 %}
-                    <div class="badge bg-warning text-dark fs-6 position-third">
+                    <div class="badge bg-warning-soft text-dark fs-6 position-third">
                       <i class="fas fa-award me-1"></i>3rd
                     </div>
                     {% else %}
-                    <div class="badge bg-secondary fs-6">
+                    <div class="badge bg-light text-dark fs-6">
                       {{ forloop.counter }}th
                     </div>
                     {% endif %}
@@ -187,15 +191,15 @@
           </div>
           <div class="card-body">
             <div class="row">
-              {% regroup projects by category as category_groups %} {% for
-              category in category_groups %}
+              {% regroup projects by get_category_display as category_groups %} 
+              {% for category in category_groups %}
               <div class="col-md-4 mb-3">
-                <div class="text-center p-3 bg-light rounded">
+                <div class="text-center p-3 bg-light rounded h-100">
                   <i class="fas fa-tag fs-2 text-primary mb-2"></i>
                   <h6 class="text-uppercase fw-bold">
                     {{ category.grouper|title }}
                   </h6>
-                  <div class="d-flex justify-content-center gap-3">
+                  <div class="d-flex justify-content-center gap-3 mt-auto">
                     <div>
                       <span class="fs-5 fw-bold"
                         >{{ category.list|length }}</span
@@ -203,16 +207,22 @@
                       <div class="small text-muted">Projects</div>
                     </div>
                     <div>
-                      <span class="fs-5 fw-bold text-success">
-                        {% for project in category.list %}{{
-                        project.vote_count|add:0 }}{% if not forloop.last %}+{%
-                        endif %}{% endfor %}
-                      </span>
+                      <!-- Corrected Summation Logic -->
+                      {% with category_total_votes=0 %}
+                        {% for project in category.list %}
+                           {% with category_total_votes=category_total_votes|add:project.vote_count %}{% endwith %}
+                        {% endfor %}
+                        <span class="fs-5 fw-bold text-success">{{ category_total_votes }}</span>
+                      {% endwith %}
                       <div class="small text-muted">Votes</div>
                     </div>
                   </div>
                 </div>
               </div>
+              {% empty %}
+                <div class="col">
+                    <p class="text-muted text-center">No projects with categories to display.</p>
+                </div>
               {% endfor %}
             </div>
           </div>
@@ -238,14 +248,16 @@
                 {% elif forloop.counter == 2 %}
                 <i class="fas fa-medal text-secondary fs-4"></i>
                 {% else %}
-                <i class="fas fa-award text-warning fs-4"></i>
+                <i class="fas fa-award text-warning-soft fs-4"></i>
                 {% endif %}
               </div>
               <div class="flex-grow-1">
                 <h6 class="mb-1">{{ project.title }}</h6>
-                <small class="text-muted">{{ project.vote_count }} votes</small>
+                <small class="text-muted">{{ project.vote_count }} vote{{ project.vote_count|pluralize }}</small>
               </div>
             </div>
+            {% empty %}
+            <p class="text-muted">No projects have been voted on yet.</p>
             {% endfor %}
           </div>
         </div>
@@ -291,7 +303,7 @@
               Recent Activity
             </h5>
           </div>
-          <div class="card-body">
+          <div class="card-body" style="min-height: 200px;">
             <div id="recent-activity">
               <!-- Activity will be loaded here -->
             </div>
@@ -312,27 +324,36 @@
     <small>Results update automatically every 30 seconds</small>
   </div>
 </div>
-{% endblock %} {% block extra_css %}
+{% endblock %} 
+
+{% block extra_css %}
 <style>
   .position-first {
     animation: glow 2s ease-in-out infinite alternate;
   }
-
   @keyframes glow {
     from {
-      box-shadow: 0 0 5px #ffc107;
+      box-shadow: 0 0 5px #ffc107, 0 0 10px #ffc107;
     }
     to {
-      box-shadow: 0 0 20px #ffc107;
+      box-shadow: 0 0 20px #ffc107, 0 0 30px #ffc107;
     }
+  }
+
+  .position-second {
+    color: #6c757d; /* Bootstrap secondary color */
+  }
+
+  .position-third {
+    color: #a4770a; /* A bronze-like color */
   }
 
   .project-item {
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
-
   .project-item:hover {
     transform: translateX(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
   .vote-count-display {
@@ -342,37 +363,40 @@
   .auto-refresh-alert {
     animation: slideIn 0.5s ease-out;
   }
-
   @keyframes slideIn {
     from {
-      transform: translateX(-100%);
+      transform: translateX(-110%);
     }
     to {
       transform: translateX(0);
     }
   }
 </style>
-{% endblock %} {% block extra_js %}
+{% endblock %} 
+
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   let votingChart;
 
   // Show different views
-  function showView(viewType) {
+  function showView(viewType, event) {
       const leaderboardView = document.getElementById('leaderboard-view');
       const chartView = document.getElementById('chart-view');
       const buttons = document.querySelectorAll('.btn-group button');
+      
+      const clickedButton = event.currentTarget;
 
       buttons.forEach(btn => btn.classList.remove('active'));
 
       if (viewType === 'leaderboard') {
           leaderboardView.classList.remove('d-none');
           chartView.classList.add('d-none');
-          event.target.classList.add('active');
+          clickedButton.classList.add('active');
       } else {
           leaderboardView.classList.add('d-none');
           chartView.classList.remove('d-none');
-          event.target.classList.add('active');
+          clickedButton.classList.add('active');
           createChart();
       }
   }
@@ -387,12 +411,16 @@
 
       const projects = [];
       const votes = [];
-      const colors = [];
+      const backgroundColors = [];
+      const borderColors = [];
 
       {% for project in projects %}
-      projects.push('{{ project.title|truncatechars:20 }}');
+      projects.push('{{ project.title|truncatechars:20|escapejs }}');
       votes.push({{ project.vote_count }});
-      colors.push('#' + Math.floor(Math.random()*16777215).toString(16));
+      // Use a consistent but varied color scheme
+      const hue = ({{ forloop.counter0 }} * 137.508) % 360; // Golden angle for color distribution
+      backgroundColors.push(`hsla(${hue}, 70%, 60%, 0.6)`);
+      borderColors.push(`hsla(${hue}, 70%, 50%, 1)`);
       {% endfor %}
 
       votingChart = new Chart(ctx, {
@@ -402,19 +430,26 @@
               datasets: [{
                   label: 'Votes',
                   data: votes,
-                  backgroundColor: 'rgba(193, 42, 55, 0.6)',
-                  borderColor: 'rgba(193, 42, 55, 1)',
+                  backgroundColor: backgroundColors,
+                  borderColor: borderColors,
                   borderWidth: 1
               }]
           },
           options: {
               responsive: true,
+              maintainAspectRatio: false,
               scales: {
                   y: {
                       beginAtZero: true,
                       ticks: {
-                          stepSize: 1
+                          stepSize: 1, // Ensure integer ticks for vote counts
+                          precision: 0
                       }
+                  }
+              },
+              plugins: {
+                  legend: {
+                      display: false
                   }
               }
           }
@@ -426,19 +461,16 @@
       fetch('{% url "voting:analytics_api" %}')
           .then(response => response.json())
           .then(data => {
-              document.getElementById('total-votes').textContent = data.total_votes;
               document.getElementById('participants-count').textContent = data.used_voting_ids;
-
-              // Calculate participation rate
+              document.getElementById('total-votes').textContent = data.total_votes;
+              
               const participationRate = data.total_voting_ids > 0 ?
                   (data.used_voting_ids / data.total_voting_ids * 100).toFixed(1) : 0;
               document.getElementById('participation-rate').textContent = participationRate + '%';
 
-              // Update recent activity
               updateRecentActivity(data.recent_votes);
 
-              // Update last updated time
-              document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+              document.getElementById('last-updated').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           })
           .catch(error => {
               console.error('Error updating live stats:', error);
@@ -449,9 +481,9 @@
   function updateRecentActivity(recentVotes) {
       const activityContainer = document.getElementById('recent-activity');
 
-      if (recentVotes.length === 0) {
+      if (!recentVotes || recentVotes.length === 0) {
           activityContainer.innerHTML = `
-              <div class="text-center text-muted py-3">
+              <div class="text-center text-muted py-3 d-flex flex-column justify-content-center align-items-center h-100">
                   <i class="fas fa-history fs-3 mb-2"></i>
                   <p>No recent activity</p>
               </div>
@@ -460,17 +492,17 @@
       }
 
       let activityHTML = '';
-      recentVotes.slice(0, 5).forEach((vote, index) => {
+      recentVotes.slice(0, 5).forEach(vote => {
           activityHTML += `
-              <div class="d-flex align-items-center mb-2">
-                  <div class="me-2">
+              <div class="d-flex align-items-start mb-3">
+                  <div class="me-3 pt-1">
                       <i class="fas fa-vote-yea text-primary"></i>
                   </div>
                   <div class="flex-grow-1">
-                      <small>
+                      <small class="d-block">
                           Vote for <strong>${vote.project}</strong>
-                          <div class="text-muted">${vote.timestamp}</div>
                       </small>
+                      <small class="text-muted">${vote.timestamp}</small>
                   </div>
               </div>
           `;
@@ -479,32 +511,26 @@
       activityContainer.innerHTML = activityHTML;
   }
 
-  // Auto-refresh functionality
+  // Initial and periodic updates
   document.addEventListener('DOMContentLoaded', function() {
+      // Run initial updates
       updateLiveStats();
-      setInterval(updateLiveStats, 30000); // Update every 30 seconds
+
+      // Set interval for auto-refresh
+      setInterval(() => {
+        // Simple reload for full data consistency. For a smoother experience, 
+        // you would implement a full AJAX update of the leaderboard as well.
+        location.reload(); 
+      }, 30000); // Reload every 30 seconds
 
       // Animate progress bars on load
       setTimeout(() => {
           const progressBars = document.querySelectorAll('.progress-bar');
           progressBars.forEach(bar => {
               bar.style.transition = 'width 1s ease-in-out';
+              bar.style.width = bar.dataset.width;
           });
-      }, 500);
+      }, 300);
   });
-
-  // Sort projects by votes (for dynamic updates)
-  function sortProjects() {
-      const projectItems = Array.from(document.querySelectorAll('.project-item'));
-      projectItems.sort((a, b) => {
-          const votesA = parseInt(a.dataset.votes);
-          const votesB = parseInt(b.dataset.votes);
-          return votesB - votesA;
-      });
-
-      // Re-append sorted items
-      const parent = projectItems[0].parentElement;
-      projectItems.forEach(item => parent.appendChild(item));
-  }
 </script>
 {% endblock %}

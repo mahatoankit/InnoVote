@@ -123,14 +123,10 @@
                       />
                     </div>
                   </div>
-                  <button
-                    class="btn btn-primary btn-touch w-100"
-                    onclick="toggleVoting()"
-                  >
-                    <i class="fas fa-power-off me-2"></i>
-                    {% if voting_session.is_active %}Stop Voting{% else %}Start
-                    Voting{% endif %}
-                  </button>
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Use the toggle switch above to start/stop voting
+                  </small>
                 </div>
               </div>
               <div class="col-md-6">
@@ -165,14 +161,10 @@
                       />
                     </div>
                   </div>
-                  <button
-                    class="btn btn-success btn-touch w-100"
-                    onclick="toggleResults()"
-                  >
-                    <i class="fas fa-eye me-2"></i>
-                    {% if voting_session.show_results %}Hide Results{% else
-                    %}Show Results{% endif %}
-                  </button>
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Use the toggle switch above to show/hide results
+                  </small>
                 </div>
               </div>
             </div>
@@ -480,131 +472,225 @@
 
   // Toggle voting status
   function toggleVoting() {
-      const isActive = document.getElementById('votingToggle').checked;
+    const votingToggle = document.getElementById("votingToggle");
+    const isActive = votingToggle.checked;
 
-      fetch('{% url "voting:toggle_voting" %}', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': getCookie('csrftoken')
-          },
-          body: JSON.stringify({
-              is_active: isActive
-          })
+    // Disable toggle during request to prevent multiple clicks
+    votingToggle.disabled = true;
+
+    fetch('{% url "voting:toggle_voting" %}', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({
+        is_active: isActive,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showToast(
+            `Voting ${isActive ? "started" : "stopped"} successfully!`,
+            "success"
+          );
+          // Add a small delay to ensure backend has updated, then refresh status
+          setTimeout(() => {
+            updateStatusDisplay();
+          }, 500);
+        } else {
+          showToast("Error updating voting status.", "error");
+          // Revert the toggle state on error
+          votingToggle.checked = !isActive;
+        }
       })
-      .then(response => response.json())
-      .then(data => {
-          if (data.success) {
-              showToast(`Voting ${isActive ? 'started' : 'stopped'} successfully!`, 'success');
-              updateStatusDisplay();
-          } else {
-              showToast('Error updating voting status.', 'error');
-          }
+      .catch((error) => {
+        console.error("Error toggling voting:", error);
+        showToast("Error updating voting status.", "error");
+        // Revert the toggle state on error
+        votingToggle.checked = !isActive;
+      })
+      .finally(() => {
+        // Re-enable the toggle
+        votingToggle.disabled = false;
       });
   }
 
   // Toggle results visibility
   function toggleResults() {
-      const showResults = document.getElementById('resultsToggle').checked;
+    const resultsToggle = document.getElementById("resultsToggle");
+    const showResults = resultsToggle.checked;
 
-      fetch('{% url "voting:toggle_results" %}', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': getCookie('csrftoken')
-          },
-          body: JSON.stringify({
-              show_results: showResults
-          })
+    // Disable toggle during request to prevent multiple clicks
+    resultsToggle.disabled = true;
+
+    fetch('{% url "voting:toggle_results" %}', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({
+        show_results: showResults,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showToast(
+            `Results ${showResults ? "shown" : "hidden"} successfully!`,
+            "success"
+          );
+          // Add a small delay to ensure backend has updated, then refresh status
+          setTimeout(() => {
+            updateStatusDisplay();
+          }, 500);
+        } else {
+          showToast("Error updating results visibility.", "error");
+          // Revert the toggle state on error
+          resultsToggle.checked = !showResults;
+        }
       })
-      .then(response => response.json())
-      .then(data => {
-          if (data.success) {
-              showToast(`Results ${showResults ? 'shown' : 'hidden'} successfully!`, 'success');
-              updateStatusDisplay();
-          } else {
-              showToast('Error updating results visibility.', 'error');
-          }
+      .catch((error) => {
+        console.error("Error toggling results:", error);
+        showToast("Error updating results visibility.", "error");
+        // Revert the toggle state on error
+        resultsToggle.checked = !showResults;
+      })
+      .finally(() => {
+        // Re-enable the toggle
+        resultsToggle.disabled = false;
       });
   }
 
   // Generate voting IDs
   function generateIDs() {
-      const count = document.getElementById('idCount').value;
+    const count = document.getElementById("idCount").value;
 
-      if (!count || count < 1 || count > 1000) {
-          showToast('Please enter a number between 1 and 1000.', 'warning');
-          return;
+    if (!count || count < 1 || count > 1000) {
+      showToast("Please enter a number between 1 and 1000.", "warning");
+      return;
+    }
+
+    // Show confirmation dialog
+    if (
+      !confirm(
+        `This will DELETE ALL existing voting IDs and generate ${count} new ones using only uppercase letters (A-Z). Are you sure you want to continue?`
+      )
+    ) {
+      return;
+    }
+
+    fetch('{% url "voting:generate_voting_ids" %}', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: `count=${count}`,
+    }).then((response) => {
+      if (response.ok) {
+        showToast(
+          `Successfully cleared old IDs and generated ${count} new voting IDs!`,
+          "success"
+        );
+        updateVotingIDStats();
+      } else {
+        showToast("Error generating voting IDs.", "error");
       }
-
-      // Show confirmation dialog
-      if (!confirm(`This will DELETE ALL existing voting IDs and generate ${count} new ones using only uppercase letters (A-Z). Are you sure you want to continue?`)) {
-          return;
-      }
-
-      fetch('{% url "voting:generate_voting_ids" %}', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'X-CSRFToken': getCookie('csrftoken')
-          },
-          body: `count=${count}`
-      })
-      .then(response => {
-          if (response.ok) {
-              showToast(`Successfully cleared old IDs and generated ${count} new voting IDs!`, 'success');
-              updateVotingIDStats();
-          } else {
-              showToast('Error generating voting IDs.', 'error');
-          }
-      });
+    });
   }
 
   // Update status display
   function updateStatusDisplay() {
-      // This would normally fetch the current status from the server
-      // For now, we'll just update based on toggle states
-      location.reload();
+    // Fetch the current status from the server and update UI
+    fetch('{% url "voting:voting_status" %}')
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Status update received:", data); // Debug log
+
+        // Update voting status
+        const votingToggle = document.getElementById("votingToggle");
+        const votingStatusText = votingToggle
+          .closest(".col-md-6")
+          .querySelector(".fw-bold");
+        const votingIndicator = votingToggle
+          .closest(".col-md-6")
+          .querySelector(".status-indicator");
+
+        votingToggle.checked = data.is_active;
+        votingStatusText.textContent = data.is_active
+          ? "Voting Active"
+          : "Voting Stopped";
+        votingIndicator.className = `status-indicator ${
+          data.is_active ? "status-active" : "status-inactive"
+        }`;
+
+        // Update results status
+        const resultsToggle = document.getElementById("resultsToggle");
+        const resultsStatusText = resultsToggle
+          .closest(".col-md-6")
+          .querySelector(".fw-bold");
+        const resultsIndicator = resultsToggle
+          .closest(".col-md-6")
+          .querySelector(".status-indicator");
+
+        resultsToggle.checked = data.show_results;
+        resultsStatusText.textContent = data.show_results
+          ? "Results Visible"
+          : "Results Hidden";
+        resultsIndicator.className = `status-indicator ${
+          data.show_results ? "status-active" : "status-inactive"
+        }`;
+      })
+      .catch((error) => {
+        console.error("Error updating status:", error);
+      });
   }
 
   // Update voting ID statistics
   function updateVotingIDStats() {
-      fetch('{% url "voting:analytics_api" %}')
-          .then(response => response.json())
-          .then(data => {
-              document.getElementById('total-ids').textContent = data.total_voting_ids;
-              document.getElementById('used-ids').textContent = data.used_voting_ids;
-          });
+    fetch('{% url "voting:analytics_api" %}')
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById("total-ids").textContent =
+          data.total_voting_ids;
+        document.getElementById("used-ids").textContent = data.used_voting_ids;
+      });
   }
 
   // Update live statistics
   function updateLiveStats() {
-      fetch('{% url "voting:analytics_api" %}')
-          .then(response => response.json())
-          .then(data => {
-              document.getElementById('live-votes').textContent = data.total_votes;
-              document.getElementById('live-participants').textContent = data.used_voting_ids;
-              document.getElementById('live-feedback').textContent = data.total_feedbacks;
+    fetch('{% url "voting:analytics_api" %}')
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById("live-votes").textContent = data.total_votes;
+        document.getElementById("live-participants").textContent =
+          data.used_voting_ids;
+        document.getElementById("live-feedback").textContent =
+          data.total_feedbacks;
 
-              updateVotingIDStats();
-              updateRecentActivity(data.recent_votes);
-              updateTopProjects(data.projects);
-              updateChart(data.projects);
-          });
+        updateVotingIDStats();
+        updateRecentActivity(data.recent_votes);
+        updateTopProjects(data.projects);
+        updateChart(data.projects);
+      });
   }
 
   // Update recent activity
   function updateRecentActivity(recentVotes) {
-      const container = document.getElementById('recentActivity');
+    const container = document.getElementById("recentActivity");
 
-      if (recentVotes.length === 0) {
-          container.innerHTML = '<p class="text-muted text-center">No recent activity</p>';
-          return;
-      }
+    if (recentVotes.length === 0) {
+      container.innerHTML =
+        '<p class="text-muted text-center">No recent activity</p>';
+      return;
+    }
 
-      let html = '';
-      recentVotes.slice(0, 10).forEach(vote => {
-          html += `
+    let html = "";
+    recentVotes.slice(0, 10).forEach((vote) => {
+      html += `
               <div class="d-flex align-items-center mb-2">
                   <div class="me-2">
                       <i class="fas fa-vote-yea text-success"></i>
@@ -618,19 +704,21 @@
                   </div>
               </div>
           `;
-      });
+    });
 
-      container.innerHTML = html;
+    container.innerHTML = html;
   }
 
   // Update top projects
   function updateTopProjects(projects) {
-      const container = document.getElementById('topProjects');
-      const sortedProjects = projects.sort((a, b) => b.votes - a.votes).slice(0, 5);
+    const container = document.getElementById("topProjects");
+    const sortedProjects = projects
+      .sort((a, b) => b.votes - a.votes)
+      .slice(0, 5);
 
-      let html = '';
-      sortedProjects.forEach((project, index) => {
-          html += `
+    let html = "";
+    sortedProjects.forEach((project, index) => {
+      html += `
               <div class="d-flex align-items-center mb-2">
                   <div class="me-2">
                       <span class="badge bg-primary">${index + 1}</span>
@@ -644,67 +732,75 @@
                   </div>
               </div>
           `;
-      });
+    });
 
-      container.innerHTML = html;
+    container.innerHTML = html;
   }
 
   // Update chart
   function updateChart(projects) {
-      const ctx = document.getElementById('votingChart').getContext('2d');
+    const ctx = document.getElementById("votingChart").getContext("2d");
 
-      if (votingChart) {
-          votingChart.destroy();
-      }
+    if (votingChart) {
+      votingChart.destroy();
+    }
 
-      const labels = projects.map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name);
-      const data = projects.map(p => p.votes);
+    const labels = projects.map((p) =>
+      p.name.length > 15 ? p.name.substring(0, 15) + "..." : p.name
+    );
+    const data = projects.map((p) => p.votes);
 
-      votingChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-              labels: labels,
-              datasets: [{
-                  label: 'Votes',
-                  data: data,
-                  backgroundColor: 'rgba(193, 42, 55, 0.6)',
-                  borderColor: 'rgba(193, 42, 55, 1)',
-                  borderWidth: 1
-              }]
+    votingChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Votes",
+            data: data,
+            backgroundColor: "rgba(193, 42, 55, 0.6)",
+            borderColor: "rgba(193, 42, 55, 1)",
+            borderWidth: 1,
           },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                  y: {
-                      beginAtZero: true,
-                      ticks: {
-                          stepSize: 1
-                      }
-                  }
-              }
-          }
-      });
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+            },
+          },
+        },
+      },
+    });
   }
 
   // Initialize dashboard
-  document.addEventListener('DOMContentLoaded', function() {
-      updateLiveStats();
+  document.addEventListener("DOMContentLoaded", function () {
+    // First, sync the toggle states with the database
+    updateStatusDisplay();
 
-      // Update every 15 seconds
-      setInterval(updateLiveStats, 15000);
+    // Then update live stats
+    updateLiveStats();
 
-      // Set up toggle listeners
-      document.getElementById('votingToggle').addEventListener('change', function() {
-          if (this.checked !== {{ voting_session.is_active|yesno:"true,false" }}) {
-              toggleVoting();
-          }
+    // Update every 15 seconds
+    setInterval(updateLiveStats, 15000);
+
+    // Set up toggle listeners - always call toggle functions when changed
+    document
+      .getElementById("votingToggle")
+      .addEventListener("change", function () {
+        toggleVoting();
       });
 
-      document.getElementById('resultsToggle').addEventListener('change', function() {
-          if (this.checked !== {{ voting_session.show_results|yesno:"true,false" }}) {
-              toggleResults();
-          }
+    document
+      .getElementById("resultsToggle")
+      .addEventListener("change", function () {
+        toggleResults();
       });
   });
 </script>
